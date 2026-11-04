@@ -135,15 +135,14 @@ async function scanCanvas(imgUrl) {
     //         return;
     //     }
     // } catch (e) {}
-    try {
-    const result = zxingReader.decodeFromCanvas(canvas);
-    if (result) {
-        handleSuccess(result.getText(), result.getBarcodeFormat());
-        return;
-    }
-} catch (e) {
-    // 検出失敗時はエラーが出るためキャッチする
-}
+try {
+        const enhancedResult = await scanWithContrastEnhancement(canvas, zxingReader);
+        if (enhancedResult) {
+            handleSuccess(enhancedResult.text, enhancedResult.format || "Barcode");
+            return;
+        }
+    } catch (e) { // 検出失敗時はエラーが出るためキャッチする
+        }
 
     showToast("コードが読み取れませんでした");
 }
@@ -260,3 +259,49 @@ soundToggleBtn.addEventListener('click', () => {
     soundIcon.className = isSoundEnabled ? "w-3.5 h-3.5 text-emerald-400" : "w-3.5 h-3.5 text-slate-500";
     soundLabel.textContent = isSoundEnabled ? "音: ON" : "音: OFF";
 });
+
+
+
+// 補助関数　コントラスト強調スキャン
+async function scanWithContrastEnhancement(targetCanvas, reader) {
+    const ctx = targetCanvas.getContext('2d');
+    const width = targetCanvas.width;
+    const height = targetCanvas.height;
+    
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const data = imgData.data;
+    
+    // コントラストの強さ（反射が強い場合は 1.6 〜 2.0 程度に調整）
+    const contrast = 1.8; 
+    const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i+1];
+        const b = data[i+2];
+        
+        // グレースケール化
+        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+
+        // コントラスト適用
+        let val = factor * (gray - 128) + 128;
+        val = Math.min(255, Math.max(0, val));
+
+        data[i] = val;
+        data[i+1] = val;
+        data[i+2] = val;
+    }
+
+    // 処理後のモノクロ・高コントラスト画像をキャンバスに戻す
+    ctx.putImageData(imgData, 0, 0);
+
+    // Canvasから直接ZXingでデコードを試みる
+    const result = reader.decodeFromCanvas(targetCanvas);
+    if (result) {
+        return {
+            text: result.getText(),
+            format: result.getBarcodeFormat()
+        };
+    }
+    return null;
+}
