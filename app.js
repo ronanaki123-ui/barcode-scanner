@@ -1,14 +1,11 @@
-// バーコードスキャナー
-// ZXingライブラリを使用して、ライブカメラまたは写真からバーコードを読み取るWebアプリケーション
+// バーコードスキャナー（写真撮影・ファイル選択メイン型）
 
 // グローバル変数
 let isSoundEnabled = true;
 let scanHistory = [];
-let isLiveScanning = false;
-let videoStream = null;
 
 const scanHints = new Map();
-scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象のバーコード形式を指定
+scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
     ZXing.BarcodeFormat.EAN_13,
     ZXing.BarcodeFormat.EAN_8,
     ZXing.BarcodeFormat.UPC_A,
@@ -16,53 +13,8 @@ scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象の�
     ZXing.BarcodeFormat.CODE_128,
     ZXing.BarcodeFormat.QR_CODE
 ]);
-scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);//高精度モード
-const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);//ZXingリーダーの初期化
-
-// ライブ映像のコントラスト補正（4フレームに1回だけ処理して軽快さを維持）
-let frameCount = 0;
-const drawOriginalFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
-zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
-    if (!video.videoWidth || !video.videoHeight || !context) {
-        return drawOriginalFrame(video, dimensions, context);
-    }
-
-    const width = video.videoWidth;
-    const height = video.videoHeight;
-
-    if (context.canvas.width !== width) context.canvas.width = width;
-    if (context.canvas.height !== height) context.canvas.height = height;
-
-    // 1. 元の映像をキャンバスに描画（プレビューを滑らかに保つ）
-    context.drawImage(video, 0, 0, width, height);
-
-    // 2. 4フレームに1回だけ重いコントラスト処理を実行
-    frameCount++;
-    if (frameCount % 4 === 0) {
-        try {
-            const imageData = context.getImageData(0, 0, width, height);
-            const pixels = imageData.data;
-            const contrastFactor = 1.6; // コントラストの強さ
-
-            // グレースケール化 + コントラスト補正
-            for (let i = 0; i < pixels.length; i += 4) {
-                const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
-                const contrast = Math.max(0, Math.min(255, (gray - 128) * contrastFactor + 128));
-
-                pixels[i] = contrast;     // R
-                pixels[i + 1] = contrast; // G
-                pixels[i + 2] = contrast; // B
-            }
-
-            context.putImageData(imageData, 0, 0);
-        } catch (error) {
-            console.warn('ライブ映像の補正に失敗:', error);
-        }
-    }
-};
-
-// 読み取り失敗時の再試行間隔
-zxingReader.timeBetweenDecodingAttempts = 150;
+scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);
 
 // HTML要素の取得
 const cameraInput = document.getElementById('cameraInput');
@@ -89,111 +41,24 @@ const soundLabel = document.getElementById('soundLabel');
 const toast = document.getElementById('toast');
 const toastMsg = document.getElementById('toastMsg');
 
-lucide.createIcons();//アイコンライブラリ(lucide icons)を有効化
+lucide.createIcons();
 
-//ライブスキャン開始ボタン
+// ★メインボタンを押したら、直接スマホのカメラを起動して撮影させる
 captureBtn.addEventListener('click', () => {
-    if (isLiveScanning) {
-        stopLiveScanner();
-        return;
-    }
-    startLiveScanner();
-});
-
-//写真撮影ボタン
-photoBtn.addEventListener('click', () => {
-    if (isLiveScanning) stopLiveScanner();
     cameraInput.click();
 });
 
-//ライブスキャン開始---------------------------------------------------------------------
-async function startLiveScanner() {
-    if (!navigator.mediaDevices?.getUserMedia) {
-        showToast('ライブカメラにはHTTPS接続が必要です。写真撮影をお使いください');
-        return;
-    }
+// サブボタン（テキストリンク）も同じくカメラ起動に連動
+photoBtn.addEventListener('click', () => {
+    cameraInput.click();
+});
 
-    isLiveScanning = true;
-    placeholderView.classList.add('hidden');
-    imagePreview.classList.add('hidden');
-    videoPreview.classList.remove('hidden');
-    scannerGuide.classList.remove('hidden');
-    overlayCanvas.classList.add('hidden');
-    captureBtnText.textContent = 'カメラを起動中…';
-
-    try {
-        videoStream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: {
-                facingMode: { ideal: 'environment' },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            }
-        });
-
-        if (!isLiveScanning) {
-            videoStream.getTracks().forEach(track => track.stop());
-            videoStream = null;
-            return;
-        }
-        captureBtnText.textContent = 'スキャン中（タップで停止）';
-        videoPreview.srcObject = videoStream;
-        await videoPreview.play();
-        if (!isLiveScanning) return;
-
-        await zxingReader.decodeFromVideoElementContinuously(videoPreview, (result) => {
-            if (result && isLiveScanning) {
-                stopLiveScanner();
-                handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()));
-            }
-            // 読み取り中の NotFoundException は通常の状態なので無視する
-        });
-    } catch (error) {
-        stopLiveScanner();
-        console.error('カメラ起動エラー:', error);
-        showToast(cameraErrorMessage(error));
-    }
-}
-
-function cameraErrorMessage(error) {
-    if (error?.name === 'NotAllowedError' || error?.name === 'PermissionDeniedError') {
-        return 'カメラの使用が許可されていません。ブラウザーの設定をご確認ください';
-    }
-    if (error?.name === 'NotFoundError' || error?.name === 'DevicesNotFoundError') {
-        return 'カメラが見つかりません。写真撮影をお試しください';
-    }
-    if (error?.name === 'NotReadableError' || error?.name === 'TrackStartError') {
-        return 'カメラを使用できません。他のアプリを閉じて再度お試しください';
-    }
-    return 'カメラを起動できません。HTTPS接続を確認するか、写真撮影をお試しください';
-}
-
-//ライブスキャン停止---------------------------------------------------------------------
-function stopLiveScanner() {
-    isLiveScanning = false;
-    try {
-        zxingReader.stopContinuousDecode();
-    } catch (error) {}
-    if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-        videoStream = null;
-    }
-    videoPreview.pause();
-    videoPreview.srcObject = null;
-    videoPreview.classList.add('hidden');
-    scannerGuide.classList.add('hidden');
-    captureBtnText.textContent = 'カメラを起動してJANコードをスキャン';
-    if (imagePreview.classList.contains('hidden')) {
-        placeholderView.classList.remove('hidden');
-    }
-}
-
-// 写真が撮影・選択された時の処理--------------------------------------------------------------
+// 写真が撮影・選択された時の処理（ここで強力なコントラスト補正と解析を行う）
 cameraInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    stopLiveScanner();
+    captureBtnText.textContent = '解析中…';
 
     const img = new Image();
     img.onload = async () => {
@@ -201,6 +66,7 @@ cameraInput.addEventListener('change', async (e) => {
         imagePreview.src = img.src;
         imagePreview.classList.remove('hidden');
         placeholderView.classList.add('hidden');
+        if (scannerGuide) scannerGuide.classList.add('hidden');
 
         // オーバーレイ用キャンバス初期化
         overlayCanvas.width = img.width;
@@ -216,19 +82,20 @@ cameraInput.addEventListener('change', async (e) => {
 
         // 解析開始
         await scanCanvas(img);
+        captureBtnText.textContent = 'カメラを起動してJANコードをスキャン';
         URL.revokeObjectURL(img.src);
     };
     img.src = URL.createObjectURL(file);
     cameraInput.value = '';
 });
 
-//オーバーレイをリセット-----------------------------------------------------------------------
+//オーバーレイをリセット
 function clearOverlay() {
     const ctx = overlayCanvas.getContext('2d');
     ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 }
 
-// 検出領域オーバーレイの描画-----------------------------------------------------------------------
+// 検出領域オーバーレイの描画
 function drawBoundingBox(points) {
     if (!points || points.length === 0) return;
     const ctx = overlayCanvas.getContext('2d');
@@ -246,7 +113,6 @@ function drawBoundingBox(points) {
     ctx.fill();
     ctx.stroke();
 
-    // 頂点にポインターを描画
     points.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, ctx.lineWidth * 1.5, 0, 2 * Math.PI);
@@ -255,7 +121,7 @@ function drawBoundingBox(points) {
     });
 }
 
-// バーコード形式の表示名を整形-----------------------------------------------------------------------
+// バーコード形式の表示名を整形
 function displayFormat(format) {
     const name = String(format || 'Barcode').toLowerCase();
     if (name.includes('ean_13') || format === ZXing.BarcodeFormat.EAN_13) return 'JAN / EAN-13';
@@ -263,11 +129,11 @@ function displayFormat(format) {
     return String(format || 'Barcode');
 }
 
-// キャンバスをスキャン-----------------------------------------------------------------------
+// キャンバスをスキャン（強力なコントラスト補正付き）
 async function scanCanvas(sourceImage) {
     clearOverlay();
 
-    // 対応ブラウザーではネイティブAPIを先に試す
+    // 1. まずネイティブAPI（BarcodeDetector）を試す
     if ('BarcodeDetector' in window) {
         try {
             const requestedFormats = ['ean_13', 'ean_8', 'code_128', 'qr_code'];
@@ -286,14 +152,14 @@ async function scanCanvas(sourceImage) {
         } catch (error) {}
     }
 
+    // 2. 次にZXingの通常読み取りを試す
     try {
         const result = await zxingReader.decodeFromImageElement(sourceImage);
         handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()));
         return;
-    } catch (error) {
-        // 元画像で失敗した場合は、コントラストを上げた画像でもう一度試す
-    }
+    } catch (error) {}
 
+    // 3. それでもダメな場合、コントラストを強烈に上げた画像を作成してもう一度試す
     try {
         const scale = Math.min(1, 2200 / canvas.width);
         const enhancedCanvas = document.createElement('canvas');
@@ -306,7 +172,7 @@ async function scanCanvas(sourceImage) {
         const pixels = imageData.data;
         for (let i = 0; i < pixels.length; i += 4) {
             const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
-            const contrast = Math.max(0, Math.min(255, (gray - 128) * 1.6 + 128));
+            const contrast = Math.max(0, Math.min(255, (gray - 128) * 1.8 + 128)); // 1.8倍の強力なコントラスト
             pixels[i] = contrast;
             pixels[i + 1] = contrast;
             pixels[i + 2] = contrast;
@@ -321,7 +187,7 @@ async function scanCanvas(sourceImage) {
         return;
     } catch (error) {}
 
-    showToast('コードが読み取れませんでした。JANコード全体にピントを合わせてください');
+    showToast('コードが読み取れませんでした。ピントを合わせて再度撮影してください');
 }
 
 function showToast(msg) {
@@ -334,7 +200,7 @@ function showToast(msg) {
     }, 2000);
 }
 
-// 音を鳴らす-----------------------------------------------------------------------
+// 音を鳴らす
 function playBeep() {
     if (!isSoundEnabled) return;
     try {
@@ -352,7 +218,7 @@ function playBeep() {
     } catch (e) {}
 }
 
-// スキャン成功時の処理-----------------------------------------------------------------------
+// スキャン成功時の処理
 function handleSuccess(text, format) {
     playBeep();
 
@@ -361,7 +227,7 @@ function handleSuccess(text, format) {
     resultText.classList.add('text-slate-100', 'font-mono', 'text-sm', 'font-semibold');
 
     scanFormat.textContent = format;
-    scanFormat.classList.remove('hidden');
+    scanFormat.classList.add('inline-block');
     resultActions.classList.remove('hidden');
 
     searchGoogleBtn.href = `https://www.google.com/search?q=${encodeURIComponent(text)}`;
@@ -370,7 +236,7 @@ function handleSuccess(text, format) {
     showToast("スキャン成功！");
 }
 
-// 履歴に追加------------------------------------------------------------------------------
+// 履歴に追加
 function addToHistory(text, format) {
     const timeStr = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     scanHistory.unshift({ text, format, time: timeStr });
@@ -378,7 +244,7 @@ function addToHistory(text, format) {
     renderHistory();
 }
 
-// 履歴を表示------------------------------------------------------------------------------
+// 履歴を表示
 function renderHistory() {
     if (scanHistory.length === 0) {
         emptyHistory.classList.remove('hidden');
@@ -414,17 +280,14 @@ function renderHistory() {
     lucide.createIcons();
 }
 
-// HTMLエスケープ-----------------------------------------------------------------------
 function escapeHtml(str) {
     return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
-// クリップボードにコピー-----------------------------------------------------------------------
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました'));
 }
 
-// クリップボードへコピーボタン
 copyBtn.addEventListener('click', () => {
     const text = resultText.textContent;
     if (text && !resultText.classList.contains('italic')) {
@@ -432,14 +295,12 @@ copyBtn.addEventListener('click', () => {
     }
 });
 
-// 履歴削除ボタン
 clearHistoryBtn.addEventListener('click', () => {
     scanHistory = [];
     renderHistory();
     showToast('履歴を消去しました');
 });
 
-// 音のON/OFF切り替えボタン
 soundToggleBtn.addEventListener('click', () => {
     isSoundEnabled = !isSoundEnabled;
     soundIcon.className = isSoundEnabled ? "w-3.5 h-3.5 text-emerald-400" : "w-3.5 h-3.5 text-slate-500";
