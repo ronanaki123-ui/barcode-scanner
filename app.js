@@ -18,6 +18,49 @@ scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象の�
 ]);
 scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);//高精度モード
 const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);//ZXingリーダーの初期化
+// ライブ映像のコントラスト補正
+const originalDrawFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
+
+zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
+    // 元の映像をキャンバスに描画
+    originalDrawFrame(video, dimensions, context);
+
+    if (!context) return;
+
+    try {
+        const width = context.canvas.width;
+        const height = context.canvas.height;
+
+        if (!width || !height) return;
+
+        const imageData = context.getImageData(0, 0, width, height);
+        const pixels = imageData.data;
+
+        const contrastFactor = 1.5;
+
+        // グレースケール化 + コントラスト補正
+        for (let i = 0; i < pixels.length; i += 4) {
+            const gray =
+                0.299 * pixels[i] +
+                0.587 * pixels[i + 1] +
+                0.114 * pixels[i + 2];
+
+            const contrast = Math.max(
+                0,
+                Math.min(255, (gray - 128) * contrastFactor + 128)
+            );
+
+            pixels[i] = contrast;
+            pixels[i + 1] = contrast;
+            pixels[i + 2] = contrast;
+        }
+
+        context.putImageData(imageData, 0, 0);
+
+    } catch (error) {
+        console.warn('ライブ映像の補正に失敗:', error);
+    }
+};
 
 // 読み取り失敗時の再試行間隔
 zxingReader.timeBetweenDecodingAttempts = 150;
@@ -84,8 +127,8 @@ async function startLiveScanner() {
             audio: false,
             video: {
                 facingMode: { ideal: 'environment' },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
             }
         });
 
