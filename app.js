@@ -18,49 +18,6 @@ scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象の�
 ]);
 scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);//高精度モード
 const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);//ZXingリーダーの初期化
-// const drawFullVideoFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
-// zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
-    if (!video.videoWidth || !video.videoHeight || !context) {
-        return drawFullVideoFrame(video, dimensions, context);
-    }
-    // カメラの映像サイズをそのまま使用（切り抜きなし）
-    // const vWidth = video.videoWidth;
-    // const vHeight = video.videoHeight;
-    
-    // if (context.canvas.width !== vWidth) context.canvas.width = vWidth;
-    // if (context.canvas.height !== vHeight) context.canvas.height = vHeight;
-    
-    // // 映像全体をそのままキャンバスに描画
-    // context.drawImage(video, 0, 0, vWidth, vHeight);
-
-    // index.html.のscannerGuideの枠に合わせて、動画の中央部分を切り抜かないといけない
-    const cropWidth = Math.round(video.videoWidth * 0.75);
-    const cropHeight = Math.round(video.videoHeight * 0.35);
-    const cropX = Math.round((video.videoWidth - cropWidth) / 2);
-    const cropY = Math.round((video.videoHeight - cropHeight) / 2);
-    if (context.canvas.width !== cropWidth) context.canvas.width = cropWidth;
-    if (context.canvas.height !== cropHeight) context.canvas.height = cropHeight;
-    context.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-
-    try {
-        const imageData = context.getImageData(0, 0, cropWidth, cropHeight);
-        const pixels = imageData.data;
-        const contrastFactor = 2.0; // コントラストの強さ
-
-        for (let i = 0; i < pixels.length; i += 4) {
-            const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
-            const contrast = Math.max(0, Math.min(255, (gray - 128) * contrastFactor + 128));
-            
-            pixels[i] = contrast;     // R
-            pixels[i + 1] = contrast; // G
-            pixels[i + 2] = contrast; // B
-        }
-        
-        context.putImageData(imageData, 0, 0);
-    } catch (err) {
-        // エラー時は何もしない（通常の描画を維持）
-    };
-// };
 
 // HTML要素の取得
 const cameraInput = document.getElementById('cameraInput');
@@ -166,7 +123,6 @@ function cameraErrorMessage(error) {
     return 'カメラを起動できません。HTTPS接続を確認するか、写真撮影をお試しください';
 }
 
-
 //ライブスキャン停止---------------------------------------------------------------------
 function stopLiveScanner() {
     isLiveScanning = false;
@@ -186,31 +142,6 @@ function stopLiveScanner() {
         placeholderView.classList.remove('hidden');
     }
 }
-
-// function stopLiveScanner() {
-//     isLiveScanning = false;
-    
-//     // アニメーションループを停止
-//     if (animationFrameId) {
-//         cancelAnimationFrame(animationFrameId);
-//         animationFrameId = null;
-//     }
-    
-//     // カメラのストリームを完全に停止
-//     if (videoStream) {
-//         videoStream.getTracks().forEach(track => track.stop());
-//         videoStream = null;
-//     }
-
-//     videoPreview.pause();
-//     videoPreview.srcObject = null;
-//     videoPreview.classList.add('hidden');
-//     captureBtnText.textContent = 'カメラを起動してJANコードをスキャン';
-    
-//     if (imagePreview.classList.contains('hidden')) {
-//         placeholderView.classList.remove('hidden');
-//     }
-// }
 
 // 写真が撮影・選択された時の処理--------------------------------------------------------------
 cameraInput.addEventListener('change', async (e) => {
@@ -286,7 +217,6 @@ function displayFormat(format) {
     if (name.includes('ean_8') || format === ZXing.BarcodeFormat.EAN_8) return 'JAN / EAN-8';
     return String(format || 'Barcode');
 }
-
 
 // キャンバスをスキャン-----------------------------------------------------------------------
 async function scanCanvas(sourceImage) {
@@ -445,6 +375,9 @@ function escapeHtml(str) {
 }
 
 // クリップボードにコピー-----------------------------------------------------------------------
+caseCopyToClipboard = function(text) {
+    navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました'));
+};
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました'));
 }
@@ -470,49 +403,3 @@ soundToggleBtn.addEventListener('click', () => {
     soundIcon.className = isSoundEnabled ? "w-3.5 h-3.5 text-emerald-400" : "w-3.5 h-3.5 text-slate-500";
     soundLabel.textContent = isSoundEnabled ? "音: ON" : "音: OFF";
 });
-
-
-
-// // 補助関数　コントラスト強調スキャン
-// async function scanWithContrastEnhancement(targetCanvas, reader) {
-//     const ctx = targetCanvas.getContext('2d');
-//     const width = targetCanvas.width;
-//     const height = targetCanvas.height;
-    
-//     const imgData = ctx.getImageData(0, 0, width, height);
-//     const data = imgData.data;
-    
-//     // コントラストの強さ（反射が強い場合は 1.6 〜 2.0 程度に調整）
-//     const contrast = 1.8; 
-//     const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-
-//     for (let i = 0; i < data.length; i += 4) {
-//         const r = data[i];
-//         const g = data[i+1];
-//         const b = data[i+2];
-        
-//         // グレースケール化
-//         const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-
-//         // コントラスト適用
-//         let val = factor * (gray - 128) + 128;
-//         val = Math.min(255, Math.max(0, val));
-
-//         data[i] = val;
-//         data[i+1] = val;
-//         data[i+2] = val;
-//     }
-
-//     // 処理後のモノクロ・高コントラスト画像をキャンバスに戻す
-//     ctx.putImageData(imgData, 0, 0);
-
-//     // Canvasから直接ZXingでデコードを試みる
-//     const result = reader.decodeFromCanvas(targetCanvas);
-//     if (result) {
-//         return {
-//             text: result.getText(),
-//             format: result.getBarcodeFormat()
-//         };
-//     }
-//     return null;
-// }
