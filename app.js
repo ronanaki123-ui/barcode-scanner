@@ -23,27 +23,27 @@ zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
     if (!video.videoWidth || !video.videoHeight || !context) {
         return drawFullVideoFrame(video, dimensions, context);
     }
-// カメラの映像サイズをそのまま使用（切り抜きなし）
-    const vWidth = video.videoWidth;
-    const vHeight = video.videoHeight;
+    // カメラの映像サイズをそのまま使用（切り抜きなし）
+    // const vWidth = video.videoWidth;
+    // const vHeight = video.videoHeight;
     
-    if (context.canvas.width !== vWidth) context.canvas.width = vWidth;
-    if (context.canvas.height !== vHeight) context.canvas.height = vHeight;
+    // if (context.canvas.width !== vWidth) context.canvas.width = vWidth;
+    // if (context.canvas.height !== vHeight) context.canvas.height = vHeight;
     
-    // 映像全体をそのままキャンバスに描画
-    context.drawImage(video, 0, 0, vWidth, vHeight);
+    // // 映像全体をそのままキャンバスに描画
+    // context.drawImage(video, 0, 0, vWidth, vHeight);
 
-    // // index.html.のscannerGuideの枠に合わせて、動画の中央部分を切り抜かないといけない
-    // const cropWidth = Math.round(video.videoWidth * 0.75);
-    // const cropHeight = Math.round(video.videoHeight * 0.35);
-    // const cropX = Math.round((video.videoWidth - cropWidth) / 2);
-    // const cropY = Math.round((video.videoHeight - cropHeight) / 2);
-    // if (context.canvas.width !== cropWidth) context.canvas.width = cropWidth;
-    // if (context.canvas.height !== cropHeight) context.canvas.height = cropHeight;
-    // context.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+    // index.html.のscannerGuideの枠に合わせて、動画の中央部分を切り抜かないといけない
+    const cropWidth = Math.round(video.videoWidth * 0.75);
+    const cropHeight = Math.round(video.videoHeight * 0.35);
+    const cropX = Math.round((video.videoWidth - cropWidth) / 2);
+    const cropY = Math.round((video.videoHeight - cropHeight) / 2);
+    if (context.canvas.width !== cropWidth) context.canvas.width = cropWidth;
+    if (context.canvas.height !== cropHeight) context.canvas.height = cropHeight;
+    context.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     try {
-        const imageData = context.getImageData(0, 0, vWidth, vHeight);
+        const imageData = context.getImageData(0, 0, cropWidth, cropHeight);
         const pixels = imageData.data;
         const contrastFactor = 2.0; // コントラストの強さ
 
@@ -66,7 +66,7 @@ zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
 const cameraInput = document.getElementById('cameraInput');
 const imagePreview = document.getElementById('imagePreview');
 const videoPreview = document.getElementById('videoPreview');
-// const scannerGuide = document.getElementById('scannerGuide');
+const scannerGuide = document.getElementById('scannerGuide');
 const overlayCanvas = document.getElementById('overlayCanvas');
 const placeholderView = document.getElementById('placeholderView');
 const canvas = document.getElementById('captureCanvas');
