@@ -1,14 +1,30 @@
 let isSoundEnabled = true;
 let scanHistory = [];
-const zxingReader = new ZXing.BrowserMultiFormatReader();
+let liveControls = null;
+let isLiveScanning = false;
+
+const scanHints = new Map();
+scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+    ZXing.BarcodeFormat.EAN_13,
+    ZXing.BarcodeFormat.EAN_8,
+    ZXing.BarcodeFormat.UPC_A,
+    ZXing.BarcodeFormat.UPC_E,
+    ZXing.BarcodeFormat.CODE_128,
+    ZXing.BarcodeFormat.QR_CODE
+]);
+scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);
 
 // DOM参照
 const cameraInput = document.getElementById('cameraInput');
 const imagePreview = document.getElementById('imagePreview');
+const videoPreview = document.getElementById('videoPreview');
 const overlayCanvas = document.getElementById('overlayCanvas');
 const placeholderView = document.getElementById('placeholderView');
 const canvas = document.getElementById('captureCanvas');
 const captureBtn = document.getElementById('captureBtn');
+const captureBtnText = document.getElementById('captureBtnText');
+const photoBtn = document.getElementById('photoBtn');
 const resultText = document.getElementById('resultText');
 const scanFormat = document.getElementById('scanFormat');
 const resultActions = document.getElementById('resultActions');
@@ -25,15 +41,78 @@ const toastMsg = document.getElementById('toastMsg');
 
 lucide.createIcons();
 
-// ボタンクリックでデバイス標準カメラを起動
+// スマートフォンの背面カメラでリアルタイムスキャン
 captureBtn.addEventListener('click', () => {
+    if (isLiveScanning) {
+        stopLiveScanner();
+        return;
+    }
+    startLiveScanner();
+});
+
+photoBtn.addEventListener('click', () => {
     cameraInput.click();
 });
+
+async function startLiveScanner() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+        showToast('ライブカメラにはHTTPS接続が必要です。写真撮影をお使いください');
+        return;
+    }
+
+    isLiveScanning = true;
+    placeholderView.classList.add('hidden');
+    imagePreview.classList.add('hidden');
+    videoPreview.classList.remove('hidden');
+    overlayCanvas.classList.add('hidden');
+    captureBtnText.textContent = 'スキャン中（タップで停止）';
+
+    try {
+        liveControls = await zxingReader.decodeFromConstraints(
+            {
+                audio: false,
+                video: {
+                    facingMode: { ideal: 'environment' },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            },
+            videoPreview,
+            (result, error, controls) => {
+                if (result && isLiveScanning) {
+                    stopLiveScanner(controls);
+                    handleSuccess(result.getText(), result.getBarcodeFormat());
+                }
+                // 読み取り中の NotFoundException は通常の状態なので無視する
+            }
+        );
+    } catch (error) {
+        stopLiveScanner();
+        showToast('カメラを起動できません。下の写真撮影をお試しください');
+    }
+}
+
+function stopLiveScanner(controls = liveControls) {
+    isLiveScanning = false;
+    try {
+        controls?.stop();
+    } catch (error) {}
+    liveControls = null;
+    videoPreview.pause();
+    videoPreview.srcObject = null;
+    videoPreview.classList.add('hidden');
+    captureBtnText.textContent = 'カメラを起動してJANコードをスキャン';
+    if (imagePreview.classList.contains('hidden')) {
+        placeholderView.classList.remove('hidden');
+    }
+}
 
 // 写真が撮影・選択された時の処理
 cameraInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    stopLiveScanner();
 
     const img = new Image();
     img.onload = async () => {
@@ -55,9 +134,11 @@ cameraInput.addEventListener('change', async (e) => {
         ctx.drawImage(img, 0, 0);
 
         // 解析開始
-        await scanCanvas(img.src);
+        await scanCanvas(img);
+        URL.revokeObjectURL(img.src);
     };
     img.src = URL.createObjectURL(file);
+    cameraInput.value = '';
 });
 
 function clearOverlay() {
@@ -92,81 +173,71 @@ function drawBoundingBox(points) {
     });
 }
 
-async function scanCanvas(imgUrl) {
-    clearOverlay();
-
-    // 1. ネイティブ BarcodeDetector API
-    if ('BarcodeDetector' in window) {
-        try {
-            const detector = new BarcodeDetector({
-                formats: ['ean_13', 'ean_8', 'code_128', 'qr_code']
-            });
-            const barcodes = await detector.detect(canvas);
-            if (barcodes.length > 0) {
-                const b = barcodes[0];
-                if (b.cornerPoints) drawBoundingBox(b.cornerPoints);
-                handleSuccess(b.rawValue, b.format || "Barcode");
-                return;
-            }
-        } catch (e) {}
-    }
-
-    // // 2. jsQR (QRコード)
-    // const ctx = canvas.getContext('2d');
-    // const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    // const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
-    // if (qrCode && qrCode.data) {
-    //     const loc = qrCode.location;
-    //     drawBoundingBox([loc.topLeftCorner, loc.topRightCorner, loc.bottomRightCorner, loc.bottomLeftCorner]);
-    //     handleSuccess(qrCode.data, "QR Code");
-    //     return;
-    // }
-
-    // 3. ZXing (JAN / 各種バーコード)
-    // try {
-    //     const result = await zxingReader.decodeFromImageUrl(imgUrl);
-    //     if (result) {
-    //         const pts = result.getResultPoints();
-    //         if (pts && pts.length >= 2) {
-    //             const boxPoints = pts.map(p => ({ x: p.getX(), y: p.getY() }));
-    //             drawBoundingBox(boxPoints);
-    //         }
-    //         handleSuccess(result.getText(), result.getBarcodeFormat() || "Barcode");
-    //         return;
-    //     }
-    // } catch (e) {}
-try {
-        const enhancedResult = await scanWithContrastEnhancement(canvas, zxingReader);
-        if (enhancedResult) {
-            handleSuccess(enhancedResult.text, enhancedResult.format || "Barcode");
-            return;
-        }
-    } catch (e) { // 検出失敗時はエラーが出るためキャッチする
-        }
-
-// try {
-//         const result = zxingReader.decodeFromCanvas(canvas);
-//         if (result) {
-//             const pts = result.getResultPoints();
-//             if (pts && pts.length >= 2) {
-//                 const boxPoints = pts.map(p => ({ x: p.getX(), y: p.getY() }));
-//                 drawBoundingBox(boxPoints);
-//             }
-//             handleSuccess(result.getText(), result.getBarcodeFormat() || "Barcode");
-//             return;
-//         }
-//     } catch (e) {}
-try {
-    const result = zxingReader.decodeFromCanvas(canvas);
-    if (result) {
-        handleSuccess(result.getText(), result.getBarcodeFormat());
-        return;
-    }
-} catch (e) {
-    // 検出失敗時はエラーが出るためキャッチする
+function displayFormat(format) {
+    const name = String(format || 'Barcode').toLowerCase();
+    if (name.includes('ean_13') || format === ZXing.BarcodeFormat.EAN_13) return 'JAN / EAN-13';
+    if (name.includes('ean_8') || format === ZXing.BarcodeFormat.EAN_8) return 'JAN / EAN-8';
+    return String(format || 'Barcode');
 }
 
-    showToast("コードが読み取れませんでした");
+async function scanCanvas(sourceImage) {
+    clearOverlay();
+
+    // 対応ブラウザーではネイティブAPIを先に試す
+    if ('BarcodeDetector' in window) {
+        try {
+            const requestedFormats = ['ean_13', 'ean_8', 'code_128', 'qr_code'];
+            const supportedFormats = await BarcodeDetector.getSupportedFormats();
+            const formats = requestedFormats.filter(format => supportedFormats.includes(format));
+            if (formats.length) {
+                const detector = new BarcodeDetector({ formats });
+                const barcodes = await detector.detect(canvas);
+                if (barcodes.length > 0) {
+                    const barcode = barcodes[0];
+                    if (barcode.cornerPoints) drawBoundingBox(barcode.cornerPoints);
+                    handleSuccess(barcode.rawValue, displayFormat(barcode.format));
+                    return;
+                }
+            }
+        } catch (error) {}
+    }
+
+    try {
+        const result = await zxingReader.decodeFromImageElement(sourceImage);
+        handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()));
+        return;
+    } catch (error) {
+        // 元画像で失敗した場合は、コントラストを上げた画像でもう一度試す
+    }
+
+    try {
+        const scale = Math.min(1, 2200 / canvas.width);
+        const enhancedCanvas = document.createElement('canvas');
+        enhancedCanvas.width = Math.max(1, Math.round(canvas.width * scale));
+        enhancedCanvas.height = Math.max(1, Math.round(canvas.height * scale));
+        const enhancedContext = enhancedCanvas.getContext('2d', { willReadFrequently: true });
+        enhancedContext.drawImage(canvas, 0, 0, enhancedCanvas.width, enhancedCanvas.height);
+
+        const imageData = enhancedContext.getImageData(0, 0, enhancedCanvas.width, enhancedCanvas.height);
+        const pixels = imageData.data;
+        for (let i = 0; i < pixels.length; i += 4) {
+            const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
+            const contrast = Math.max(0, Math.min(255, (gray - 128) * 1.6 + 128));
+            pixels[i] = contrast;
+            pixels[i + 1] = contrast;
+            pixels[i + 2] = contrast;
+        }
+        enhancedContext.putImageData(imageData, 0, 0);
+
+        const enhancedImage = new Image();
+        enhancedImage.src = enhancedCanvas.toDataURL('image/png');
+        await enhancedImage.decode();
+        const result = await zxingReader.decodeFromImageElement(enhancedImage);
+        handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()));
+        return;
+    } catch (error) {}
+
+    showToast('コードが読み取れませんでした。JANコード全体にピントを合わせてください');
 }
 
 function showToast(msg) {

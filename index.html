@@ -33,8 +33,8 @@
     <!-- カメラプレビューエリア -->
     <div class="relative w-full aspect-[4/3] max-h-[36vh] bg-black rounded-2xl overflow-hidden border border-slate-700 shadow-2xl my-3 flex items-center justify-center">
         
-        <!-- ビデオ要素の代わりに撮影した画像のプレビューを表示 -->
         <div class="relative w-full h-full flex items-center justify-center">
+            <video id="videoPreview" class="w-full h-full object-contain hidden" autoplay playsinline muted></video>
             <img id="imagePreview" class="w-full h-full object-contain hidden" alt="撮影プレビュー">
             <!-- 検出枠オーバーレイ用キャンバス -->
             <canvas id="overlayCanvas" class="absolute inset-0 w-full h-full pointer-events-none object-contain hidden"></canvas>
@@ -44,7 +44,7 @@
             <div class="p-3 bg-indigo-600/20 text-indigo-400 rounded-full mb-2 border border-indigo-500/30">
                 <i data-lucide="camera" class="w-8 h-8"></i>
             </div>
-            <p class="text-xs text-slate-300">下のボタンを押して<br>カメラでコードを撮影してください</p>
+            <p class="text-xs text-slate-300">カメラを起動してJANコードを枠内に映してください</p>
         </div>
 
         <!-- 隠しファイル入力要素 (背面カメラ直接呼び出し) -->
@@ -58,7 +58,10 @@
     <div class="w-full mb-3">
         <button id="captureBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-base py-3.5 px-4 rounded-xl transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 border border-indigo-400/30 cursor-pointer">
             <i data-lucide="camera" class="w-5 h-5"></i>
-            <span id="captureBtnText">カメラを起動して撮影</span>
+            <span id="captureBtnText">カメラを起動してJANコードをスキャン</span>
+        </button>
+        <button id="photoBtn" class="w-full mt-2 text-xs text-slate-400 hover:text-white py-2 transition">
+            読み取れない場合：写真を撮影して読み取る
         </button>
     </div>
 
@@ -115,7 +118,7 @@
 
     <!-- Web標準 BarcodeDetector API & Fallback (jsQR + ZXing) -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script src="https://unpkg.com/@zxing/library@0.21.3"></script>
     <script src="app.js"></script>
 
 </body>
