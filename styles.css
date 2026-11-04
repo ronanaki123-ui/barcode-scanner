@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #fff2e0;
+}
+
+/* 撮影成功時のカメラフレームフラッシュアニメーション */
+@keyframes scanFlash {
+    0% { opacity: 0.8; background-color: white; }
+    100% { opacity: 0; background-color: transparent; }
+}
+
+.flash-active {
+    animation: scanFlash 0.25s ease-out forwards;
+}
