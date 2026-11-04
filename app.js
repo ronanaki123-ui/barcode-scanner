@@ -19,9 +19,10 @@ scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象の�
 scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);//高精度モード
 const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);//ZXingリーダーの初期化
 // ライブ映像のコントラスト補正
-const originalDrawFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
+// const originalDrawFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
+// zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
+// ZXing標準の映像処理を使用する
 
-zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
     // 元の映像をキャンバスに描画
     originalDrawFrame(video, dimensions, context);
 
@@ -60,7 +61,6 @@ zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
     } catch (error) {
         console.warn('ライブ映像の補正に失敗:', error);
     }
-};
 
 // 読み取り失敗時の再試行間隔
 zxingReader.timeBetweenDecodingAttempts = 150;
