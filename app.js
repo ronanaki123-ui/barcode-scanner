@@ -24,14 +24,34 @@ zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
         return drawFullVideoFrame(video, dimensions, context);
     }
 
-    // Keep this crop aligned with the visible scanner guide in index.html.
-    const cropWidth = Math.round(video.videoWidth * 0.60);
-    const cropHeight = Math.round(video.videoHeight * 0.25);
+
+    // index.html.のscannerGuideの枠に合わせて、動画の中央部分を切り抜かないといけない
+    const cropWidth = Math.round(video.videoWidth * 0.75);
+    const cropHeight = Math.round(video.videoHeight * 0.35);
     const cropX = Math.round((video.videoWidth - cropWidth) / 2);
     const cropY = Math.round((video.videoHeight - cropHeight) / 2);
     if (context.canvas.width !== cropWidth) context.canvas.width = cropWidth;
     if (context.canvas.height !== cropHeight) context.canvas.height = cropHeight;
     context.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+    
+    try {
+        const imageData = context.getImageData(0, 0, cropWidth, cropHeight);
+        const pixels = imageData.data;
+        const contrastFactor = 1.6; // コントラストの強さ
+
+        for (let i = 0; i < pixels.length; i += 4) {
+            const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
+            const contrast = Math.max(0, Math.min(255, (gray - 128) * contrastFactor + 128));
+            
+            pixels[i] = contrast;     // R
+            pixels[i + 1] = contrast; // G
+            pixels[i + 2] = contrast; // B
+        }
+        
+        context.putImageData(imageData, 0, 0);
+    } catch (err) {
+        // エラー時は何もしない（通常の描画を維持）
+    }
 };
 
 // HTML要素の取得
