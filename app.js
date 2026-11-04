@@ -245,12 +245,12 @@ async function handleSuccess(text, format) {
     scanFormat.classList.add('inline-block');
     resultActions.classList.remove('hidden');
 
-    searchGoogleBtn.href = `https://www.google.com/search?q=${encodeURIComponent(text)}`;
+    searchGoogleBtn.href = `https://www.google.com/search?q=${encodeURIComponent(text)}`;//あとで別サイト参照に変える
 
     const catalog = await productCatalogPromise;
     const product = findProduct(catalog, text);
-    productName.textContent = product?.name || 'Unknown product';
-    productDescription.textContent = product?.description || 'No product information found for this barcode.';
+    productName.textContent = product?.name || '当店では取り扱いのない商品です。';
+    productDescription.textContent = product?.description || 'このバーコードの商品情報は見つかりませんでした。';
 
     showToast("スキャン成功！");
 }
