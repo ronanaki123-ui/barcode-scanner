@@ -25,8 +25,8 @@ zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
     }
 
     // Keep this crop aligned with the visible scanner guide in index.html.
-    const cropWidth = Math.round(video.videoWidth * 0.84);
-    const cropHeight = Math.round(video.videoHeight * 0.30);
+    const cropWidth = Math.round(video.videoWidth * 0.60);
+    const cropHeight = Math.round(video.videoHeight * 0.45);
     const cropX = Math.round((video.videoWidth - cropWidth) / 2);
     const cropY = Math.round((video.videoHeight - cropHeight) / 2);
     if (context.canvas.width !== cropWidth) context.canvas.width = cropWidth;
@@ -137,81 +137,7 @@ function cameraErrorMessage(error) {
     }
     return 'カメラを起動できません。HTTPS接続を確認するか、写真撮影をお試しください';
 }
-//     try {
-//         // 1. カメラのストリームを取得してプレビューに流す
-//         videoStream = await navigator.mediaDevices.getUserMedia({
-//             audio: false,
-//             video: {
-//                 facingMode: { ideal: 'environment' },
-//                 width: { ideal: 1280 },
-//                 height: { ideal: 720 }
-//             }
-//         });
 
-//         videoPreview.srcObject = videoStream;
-//         videoPreview.play();
-
-//         // ビデオのメタデータ（サイズ等）が読み込まれるのを待つ
-//         await new Promise((resolve) => {
-//             videoPreview.onloadedmetadata = () => resolve();
-//         });
-
-//         const ctx = canvas.getContext('2d'); // 初期設定で取得済みの captureCanvas を利用
-
-//         // 2. 毎フレーム実行するスキャンループ
-//         const scanLoop = () => {
-//             if (!isLiveScanning) return;
-
-//             if (videoPreview.readyState === videoPreview.HAVE_ENOUGH_DATA) {
-//                 const vWidth = videoPreview.videoWidth;
-//                 const vHeight = videoPreview.videoHeight;
-
-//                 // --- 【ROI（スキャン枠）の切り出し設定】 ---
-//                 // ビデオ映像の中心から「幅 70%、高さ 30%」のエリアだけを切り出す
-//                 const cropWidth = vWidth * 0.7;
-//                 const cropHeight = vHeight * 0.3;
-//                 const cropX = (vWidth - cropWidth) / 2;
-//                 const cropY = (vHeight - cropHeight) / 2;
-
-//                 // キャンバスのサイズを切り出すサイズに合わせる
-//                 canvas.width = cropWidth;
-//                 canvas.height = cropHeight;
-
-//                 // 映像の中心部分（バーコードがありそうな枠内）だけをCanvasに描画
-//                 ctx.drawImage(
-//                     videoPreview,
-//                     cropX, cropY, cropWidth, cropHeight, // 切り出し元の座標とサイズ
-//                     0, 0, cropWidth, cropHeight         // 描画先の座標とサイズ
-//                 );
-
-//                 try {
-//                     // 3. 切り出した限定エリアの画像だけをZXingでデコード
-//                     const result = zxingReader.decodeFromCanvas(canvas);
-                    
-//                     if (result && isLiveScanning) {
-//                         // 読み取り成功！
-//                         stopLiveScanner();
-//                         handleSuccess(result.getText(), result.getBarcodeFormat());
-//                         return;
-//                     }
-//                 } catch (err) {
-//                     // 読み取り中の NotFoundException は通常の状態なので無視する
-//                 }
-//             }
-
-//             // 次のフレームへ
-//             animationFrameId = requestAnimationFrame(scanLoop);
-//         };
-
-//         // ループを開始
-//         animationFrameId = requestAnimationFrame(scanLoop);
-
-//     } catch (error) {
-//         console.error("カメラ起動エラー:", error);
-//         stopLiveScanner();
-//         showToast('カメラを起動できません。下の写真撮影をお試しください');
-//     }
-// }
 
 //ライブスキャン停止---------------------------------------------------------------------
 function stopLiveScanner() {
