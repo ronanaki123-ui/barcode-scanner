@@ -19,6 +19,44 @@ scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象の�
 scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);//高精度モード
 const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);//ZXingリーダーの初期化
 
+// 4フレームに1回だけコントラストを適用する処理
+let frameCount = 0;
+const drawFullVideoFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
+zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
+    if (!video.videoWidth || !video.videoHeight || !context) {
+        return drawFullVideoFrame(video, dimensions, context);
+    }
+
+    const vWidth = video.videoWidth;
+    const vHeight = video.videoHeight;
+    
+    if (context.canvas.width !== vWidth) context.canvas.width = vWidth;
+    if (context.canvas.height !== vHeight) context.canvas.height = vHeight;
+    
+    // 映像全体をそのまま描画（プレビューを滑らかに保つ）
+    context.drawImage(video, 0, 0, vWidth, vHeight);
+
+    // 4回に1回（4フレームに1回）だけ重いコントラスト処理を実行する
+    frameCount++;
+    if (frameCount % 4 === 0) {
+        try {
+            const imageData = context.getImageData(0, 0, vWidth, vHeight);
+            const pixels = imageData.data;
+            const contrastFactor = 2.0; // コントラストの強さ
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
+                const contrast = Math.max(0, Math.min(255, (gray - 128) * contrastFactor + 128));
+                
+                pixels[i] = contrast;     // R
+                pixels[i + 1] = contrast; // G
+                pixels[i + 2] = contrast; // B
+            }
+            
+            context.putImageData(imageData, 0, 0);
+        } catch (err) {}
+    }
+};
 // HTML要素の取得
 const cameraInput = document.getElementById('cameraInput');
 const imagePreview = document.getElementById('imagePreview');
