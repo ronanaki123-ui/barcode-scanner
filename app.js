@@ -4,12 +4,9 @@
 // グローバル変数
 let isSoundEnabled = true;
 let scanHistory = [];
-let liveControls = null;
 let isLiveScanning = false;
 let videoStream = null;
-let animationFrameId = null;
 
-const scanCanvas = document.getElementById('captureCanvas');// 描画・切り出し用の隠しキャンバス
 const scanHints = new Map();
 scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象のバーコード形式を指定
     ZXing.BarcodeFormat.EAN_13,
@@ -21,11 +18,27 @@ scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象の�
 ]);
 scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);//高精度モード
 const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);//ZXingリーダーの初期化
+const drawFullVideoFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
+zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
+    if (!video.videoWidth || !video.videoHeight || !context) {
+        return drawFullVideoFrame(video, dimensions, context);
+    }
+
+    // Keep this crop aligned with the visible scanner guide in index.html.
+    const cropWidth = Math.round(video.videoWidth * 0.84);
+    const cropHeight = Math.round(video.videoHeight * 0.30);
+    const cropX = Math.round((video.videoWidth - cropWidth) / 2);
+    const cropY = Math.round((video.videoHeight - cropHeight) / 2);
+    if (context.canvas.width !== cropWidth) context.canvas.width = cropWidth;
+    if (context.canvas.height !== cropHeight) context.canvas.height = cropHeight;
+    context.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+};
 
 // HTML要素の取得
 const cameraInput = document.getElementById('cameraInput');
 const imagePreview = document.getElementById('imagePreview');
 const videoPreview = document.getElementById('videoPreview');
+const scannerGuide = document.getElementById('scannerGuide');
 const overlayCanvas = document.getElementById('overlayCanvas');
 const placeholderView = document.getElementById('placeholderView');
 const canvas = document.getElementById('captureCanvas');
@@ -59,6 +72,7 @@ captureBtn.addEventListener('click', () => {
 
 //写真撮影ボタン
 photoBtn.addEventListener('click', () => {
+    if (isLiveScanning) stopLiveScanner();
     cameraInput.click();
 });
 
@@ -69,36 +83,59 @@ async function startLiveScanner() {
         return;
     }
 
-    isLiveScanning = true;  // ライブスキャン中
+    isLiveScanning = true;
     placeholderView.classList.add('hidden');
     imagePreview.classList.add('hidden');
     videoPreview.classList.remove('hidden');
+    scannerGuide.classList.remove('hidden');
     overlayCanvas.classList.add('hidden');
-    captureBtnText.textContent = 'スキャン中（タップで停止）';
+    captureBtnText.textContent = 'カメラを起動中…';
 
     try {
-        liveControls = await zxingReader.decodeFromConstraints(
-            {
-                audio: false,
-                video: {// 背面カメラを優先、解像度を指定し、ビデオを取得
-                    facingMode: { ideal: 'environment' },
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
-            },
-            videoPreview,//取得した映像を表示(上記video要素)
-            (result, error, controls) => {
-                if (result && isLiveScanning) {//フレームごとに読み取り結果が返ってくるので、成功したら停止して結果をhandleSuccessに渡す
-                    stopLiveScanner(controls);
-                    handleSuccess(result.getText(), result.getBarcodeFormat());
-                }
-                // 読み取り中の NotFoundException は通常の状態なので無視する
+        videoStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+                facingMode: { ideal: 'environment' },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
             }
-        );
+        });
+
+        if (!isLiveScanning) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+            return;
+        }
+        captureBtnText.textContent = 'スキャン中（タップで停止）';
+        videoPreview.srcObject = videoStream;
+        await videoPreview.play();
+        if (!isLiveScanning) return;
+
+        await zxingReader.decodeFromVideoElementContinuously(videoPreview, (result) => {
+            if (result && isLiveScanning) {
+                stopLiveScanner();
+                handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()));
+            }
+            // 読み取り中の NotFoundException は通常の状態なので無視する
+        });
     } catch (error) {
         stopLiveScanner();
-        showToast('カメラを起動できません。下の写真撮影をお試しください');
+        console.error('カメラ起動エラー:', error);
+        showToast(cameraErrorMessage(error));
     }
+}
+
+function cameraErrorMessage(error) {
+    if (error?.name === 'NotAllowedError' || error?.name === 'PermissionDeniedError') {
+        return 'カメラの使用が許可されていません。ブラウザーの設定をご確認ください';
+    }
+    if (error?.name === 'NotFoundError' || error?.name === 'DevicesNotFoundError') {
+        return 'カメラが見つかりません。写真撮影をお試しください';
+    }
+    if (error?.name === 'NotReadableError' || error?.name === 'TrackStartError') {
+        return 'カメラを使用できません。他のアプリを閉じて再度お試しください';
+    }
+    return 'カメラを起動できません。HTTPS接続を確認するか、写真撮影をお試しください';
 }
 //     try {
 //         // 1. カメラのストリームを取得してプレビューに流す
@@ -177,15 +214,19 @@ async function startLiveScanner() {
 // }
 
 //ライブスキャン停止---------------------------------------------------------------------
-function stopLiveScanner(controls = liveControls) {
+function stopLiveScanner() {
     isLiveScanning = false;
     try {
-        controls?.stop();
+        zxingReader.stopContinuousDecode();
     } catch (error) {}
-    liveControls = null;
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+    }
     videoPreview.pause();
     videoPreview.srcObject = null;
     videoPreview.classList.add('hidden');
+    scannerGuide.classList.add('hidden');
     captureBtnText.textContent = 'カメラを起動してJANコードをスキャン';
     if (imagePreview.classList.contains('hidden')) {
         placeholderView.classList.remove('hidden');

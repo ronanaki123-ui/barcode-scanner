@@ -34,7 +34,11 @@
     <div class="relative w-full aspect-[4/3] max-h-[36vh] bg-black rounded-2xl overflow-hidden border border-slate-700 shadow-2xl my-3 flex items-center justify-center">
         
         <div class="relative w-full h-full flex items-center justify-center">
-            <video id="videoPreview" class="w-full h-full object-contain hidden" autoplay playsinline muted></video>
+            <video id="videoPreview" class="w-full h-full object-fill hidden" autoplay playsinline muted></video>
+            <div id="scannerGuide" class="absolute left-[8%] right-[8%] top-[35%] h-[30%] hidden z-10 rounded-lg border-2 border-amber-400 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] pointer-events-none">
+                <div class="absolute left-2 right-2 top-1/2 border-t border-amber-300/70"></div>
+                <span class="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-black/70 px-2 py-1 text-[10px] font-medium text-amber-200">JANコードを枠内へ</span>
+            </div>
             <img id="imagePreview" class="w-full h-full object-contain hidden" alt="撮影プレビュー">
             <!-- 検出枠オーバーレイ用キャンバス -->
             <canvas id="overlayCanvas" class="absolute inset-0 w-full h-full pointer-events-none object-contain hidden"></canvas>
