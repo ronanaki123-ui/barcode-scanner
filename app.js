@@ -1,4 +1,4 @@
-// バーコードスキャナー（写真撮影・ファイル選択メイン型）
+// バーコードスキャナー
 
 // グローバル変数
 let isSoundEnabled = true;
@@ -50,12 +50,12 @@ const toastMsg = document.getElementById('toastMsg');
 
 lucide.createIcons();
 
-//カメラを起動して撮影
+//カメラを起動して撮影ボタン
 captureBtn.addEventListener('click', () => {
     cameraInput.click();
 });
 
-// 写真が撮影・選択された時の処理
+// 写真が撮影・選択された時の処理-----------------------------------------------------------
 cameraInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -91,13 +91,13 @@ cameraInput.addEventListener('change', async (e) => {
     cameraInput.value = '';
 });
 
-//オーバーレイをリセット
+//オーバーレイをリセット-----------------------------------------------------------
 function clearOverlay() {
     const ctx = overlayCanvas.getContext('2d');
     ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 }
 
-// 検出領域オーバーレイの描画
+// 検出領域オーバーレイの描画---------------------------------------------------------------
 function drawBoundingBox(points) {
     if (!points || points.length === 0) return;
     const ctx = overlayCanvas.getContext('2d');
@@ -123,7 +123,7 @@ function drawBoundingBox(points) {
     });
 }
 
-// バーコード形式の表示名を整形
+// バーコード形式の表示名を整形-----------------------------------------------------------
 function displayFormat(format) {
     const name = String(format || 'Barcode').toLowerCase();
     if (name.includes('ean_13') || format === ZXing.BarcodeFormat.EAN_13) return 'JAN / EAN-13';
@@ -131,11 +131,11 @@ function displayFormat(format) {
     return String(format || 'Barcode');
 }
 
-// キャンバスをスキャン
+// キャンバスをスキャン----------------------------------------------------------------
 async function scanCanvas(sourceImage) {
     clearOverlay();
 
-    // 1. まずネイティブAPI（BarcodeDetector）を試す
+    //1.ネイティブAPI（BarcodeDetector）を試す
     if ('BarcodeDetector' in window) {
         try {
             const requestedFormats = ['ean_13', 'ean_8', 'code_128', 'qr_code'];
@@ -154,14 +154,14 @@ async function scanCanvas(sourceImage) {
         } catch (error) {}
     }
 
-    // 2. 次にZXingの通常読み取りを試す
+    //2.ZXingの通常読み取りを試す
     try {
         const result = await zxingReader.decodeFromImageElement(sourceImage);
         handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()));
         return;
     } catch (error) {}
 
-    // 3. それでもダメな場合、コントラストを強烈に上げた画像を作成してもう一度試す
+    //3.コントラストを強烈に上げた画像を作成してもう一度試す
     try {
         const scale = Math.min(1, 2200 / canvas.width);
         const enhancedCanvas = document.createElement('canvas');
@@ -192,6 +192,7 @@ async function scanCanvas(sourceImage) {
     showToast('コードが読み取れませんでした。ピントを合わせて再度撮影してください');
 }
 
+//トーストメッセージの表示----------------------------------------------------------------
 function showToast(msg) {
     toastMsg.textContent = msg;
     toast.classList.remove('translate-y-16', 'opacity-0');
@@ -202,7 +203,7 @@ function showToast(msg) {
     }, 2000);
 }
 
-// 音を鳴らす
+//効果音----------------------------------------------------------------
 function playBeep() {
     if (!isSoundEnabled) return;
     try {
@@ -220,6 +221,7 @@ function playBeep() {
     } catch (e) {}
 }
 
+//商品カタログからバーコードに対応する商品情報を検索---------------------------------------------------------------
 function findProduct(catalog, barcode) {
     const code = String(barcode).trim();
     const candidates = [code];
@@ -233,7 +235,7 @@ function findProduct(catalog, barcode) {
     return null;
 }
 
-// スキャン成功時の処理
+// スキャン成功時の処理---------------------------------------------------------------
 async function handleSuccess(text, format) {
     playBeep();
 
@@ -250,15 +252,17 @@ async function handleSuccess(text, format) {
     const catalog = await productCatalogPromise;
     const product = findProduct(catalog, text);
     productName.textContent = product?.name || '当店では取り扱いのない商品です。';
-    productDescription.textContent = product?.description || 'このバーコードの商品情報は見つかりませんでした。';
+    productDescription.textContent = product?.description || '-';
 
     showToast("スキャン成功！");
 }
 
+//HTMLエスケープ----------------------------------------------------------------
 function escapeHtml(str) {
     return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
+//クリップボードにコピー--------------------------------------------------------------
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました'));
 }
