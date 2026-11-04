@@ -98,7 +98,9 @@ async function scanCanvas(imgUrl) {
     // 1. ネイティブ BarcodeDetector API
     if ('BarcodeDetector' in window) {
         try {
-            const detector = new BarcodeDetector();
+            const detector = new BarcodeDetector({
+                formats: ['ean_13', 'ean_8', 'code_128', 'qr_code']
+            });
             const barcodes = await detector.detect(canvas);
             if (barcodes.length > 0) {
                 const b = barcodes[0];
@@ -109,30 +111,39 @@ async function scanCanvas(imgUrl) {
         } catch (e) {}
     }
 
-    // 2. jsQR (QRコード)
-    const ctx = canvas.getContext('2d');
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
-    if (qrCode && qrCode.data) {
-        const loc = qrCode.location;
-        drawBoundingBox([loc.topLeftCorner, loc.topRightCorner, loc.bottomRightCorner, loc.bottomLeftCorner]);
-        handleSuccess(qrCode.data, "QR Code");
-        return;
-    }
+    // // 2. jsQR (QRコード)
+    // const ctx = canvas.getContext('2d');
+    // const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+    // if (qrCode && qrCode.data) {
+    //     const loc = qrCode.location;
+    //     drawBoundingBox([loc.topLeftCorner, loc.topRightCorner, loc.bottomRightCorner, loc.bottomLeftCorner]);
+    //     handleSuccess(qrCode.data, "QR Code");
+    //     return;
+    // }
 
     // 3. ZXing (JAN / 各種バーコード)
+    // try {
+    //     const result = await zxingReader.decodeFromImageUrl(imgUrl);
+    //     if (result) {
+    //         const pts = result.getResultPoints();
+    //         if (pts && pts.length >= 2) {
+    //             const boxPoints = pts.map(p => ({ x: p.getX(), y: p.getY() }));
+    //             drawBoundingBox(boxPoints);
+    //         }
+    //         handleSuccess(result.getText(), result.getBarcodeFormat() || "Barcode");
+    //         return;
+    //     }
+    // } catch (e) {}
     try {
-        const result = await zxingReader.decodeFromImageUrl(imgUrl);
-        if (result) {
-            const pts = result.getResultPoints();
-            if (pts && pts.length >= 2) {
-                const boxPoints = pts.map(p => ({ x: p.getX(), y: p.getY() }));
-                drawBoundingBox(boxPoints);
-            }
-            handleSuccess(result.getText(), result.getBarcodeFormat() || "Barcode");
-            return;
-        }
-    } catch (e) {}
+    const result = zxingReader.decodeFromCanvas(canvas);
+    if (result) {
+        handleSuccess(result.getText(), result.getBarcodeFormat());
+        return;
+    }
+} catch (e) {
+    // 検出失敗時はエラーが出るためキャッチする
+}
 
     showToast("コードが読み取れませんでした");
 }
