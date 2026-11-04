@@ -16,7 +16,7 @@
     <!-- ヘッダー -->
     <header class="flex items-center justify-between py-2 px-1 border-b border-slate-800">
         <div class="flex items-center space-x-2">
-            <div class="p-1.5 bg-indigo-600 rounded-lg text-white">
+            <div class="p-1.5 bg-tomato-600 rounded-lg text-white">
                 <i data-lucide="camera" class="w-4 h-4"></i>
             </div>
             <h1 class="text-sm font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
@@ -41,7 +41,7 @@
         </div>
 
         <div id="placeholderView" class="flex flex-col items-center justify-center p-4 text-center">
-            <div class="p-3 bg-indigo-600/20 text-indigo-400 rounded-full mb-2 border border-indigo-500/30">
+            <div class="p-3 bg-tomato-600/20 text-tomato-400 rounded-full mb-2 border border-tomato-500/30">
                 <i data-lucide="camera" class="w-8 h-8"></i>
             </div>
             <p class="text-xs text-slate-300">カメラを起動してJANコードを枠内に映してください</p>
@@ -56,7 +56,7 @@
 
     <!-- コントロールボタン -->
     <div class="w-full mb-3">
-        <button id="captureBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-base py-3.5 px-4 rounded-xl transition shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 border border-indigo-400/30 cursor-pointer">
+        <button id="captureBtn" class="w-full bg-tomato-600 hover:bg-tomato-500 active:scale-[0.99] text-white font-bold text-base py-3.5 px-4 rounded-xl transition shadow-lg shadow-tomato-600/30 flex items-center justify-center space-x-2 border border-tomato-400/30 cursor-pointer">
             <i data-lucide="camera" class="w-5 h-5"></i>
             <span id="captureBtnText">カメラを起動してJANコードをスキャン</span>
         </button>
@@ -69,7 +69,7 @@
     <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 shadow-lg mb-3">
         <div class="flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
             <span>スキャン結果</span>
-            <span id="scanFormat" class="text-indigo-400 font-mono hidden">--</span>
+            <span id="scanFormat" class="text-tomato-400 font-mono hidden">--</span>
         </div>
 
         <div id="resultContent" class="bg-slate-900/90 border border-slate-700/80 rounded-lg p-2.5 min-h-[50px] flex items-center justify-between">
@@ -93,7 +93,7 @@
     <div class="flex-1 bg-slate-800/40 border border-slate-800 rounded-xl p-3 flex flex-col justify-between min-h-[180px]">
         <div class="flex items-center justify-between mb-2 shrink-0">
             <h2 class="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
-                <i data-lucide="history" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <i data-lucide="history" class="w-3.5 h-3.5 text-tomato-400"></i>
                 <span>読み取り履歴</span>
             </h2>
             <button id="clearHistoryBtn" class="text-[11px] text-slate-500 hover:text-rose-400 transition flex items-center space-x-1">
@@ -111,7 +111,7 @@
     </div>
 
     <!-- トースト通知 -->
-    <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-full shadow-2xl flex items-center space-x-1.5 text-xs font-medium transform translate-y-16 opacity-0 transition-all duration-200 z-50 pointer-events-none">
+    <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-tomato-600 text-white px-4 py-2 rounded-full shadow-2xl flex items-center space-x-1.5 text-xs font-medium transform translate-y-16 opacity-0 transition-all duration-200 z-50 pointer-events-none">
         <i data-lucide="check" class="w-3.5 h-3.5"></i>
         <span id="toastMsg">読み取り成功</span>
     </div>

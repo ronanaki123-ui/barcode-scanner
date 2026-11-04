@@ -1,10 +1,14 @@
+// バーコードスキャナー
+// ZXingライブラリを使用して、ライブカメラまたは写真からバーコードを読み取るWebアプリケーション
+
+// グローバル変数
 let isSoundEnabled = true;
 let scanHistory = [];
 let liveControls = null;
 let isLiveScanning = false;
 
 const scanHints = new Map();
-scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象のバーコード形式を指定
     ZXing.BarcodeFormat.EAN_13,
     ZXing.BarcodeFormat.EAN_8,
     ZXing.BarcodeFormat.UPC_A,
@@ -12,10 +16,10 @@ scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
     ZXing.BarcodeFormat.CODE_128,
     ZXing.BarcodeFormat.QR_CODE
 ]);
-scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);
+scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);//高精度モード
+const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);//ZXingリーダーの初期化
 
-// DOM参照
+// HTML要素の取得
 const cameraInput = document.getElementById('cameraInput');
 const imagePreview = document.getElementById('imagePreview');
 const videoPreview = document.getElementById('videoPreview');
@@ -39,9 +43,9 @@ const soundLabel = document.getElementById('soundLabel');
 const toast = document.getElementById('toast');
 const toastMsg = document.getElementById('toastMsg');
 
-lucide.createIcons();
+lucide.createIcons();//アイコンライブラリ(lucide icons)を有効化
 
-// スマートフォンの背面カメラでリアルタイムスキャン
+//ライブスキャン開始ボタン
 captureBtn.addEventListener('click', () => {
     if (isLiveScanning) {
         stopLiveScanner();
@@ -50,17 +54,19 @@ captureBtn.addEventListener('click', () => {
     startLiveScanner();
 });
 
+//写真撮影ボタン
 photoBtn.addEventListener('click', () => {
     cameraInput.click();
 });
 
+//ライブスキャン開始---------------------------------------------------------------------
 async function startLiveScanner() {
     if (!navigator.mediaDevices?.getUserMedia) {
         showToast('ライブカメラにはHTTPS接続が必要です。写真撮影をお使いください');
         return;
     }
 
-    isLiveScanning = true;
+    isLiveScanning = true;  // ライブスキャン中
     placeholderView.classList.add('hidden');
     imagePreview.classList.add('hidden');
     videoPreview.classList.remove('hidden');
@@ -71,15 +77,15 @@ async function startLiveScanner() {
         liveControls = await zxingReader.decodeFromConstraints(
             {
                 audio: false,
-                video: {
+                video: {// 背面カメラを優先、解像度を指定し、ビデオを取得
                     facingMode: { ideal: 'environment' },
                     width: { ideal: 1280 },
                     height: { ideal: 720 }
                 }
             },
-            videoPreview,
+            videoPreview,//取得した映像を表示(上記video要素)
             (result, error, controls) => {
-                if (result && isLiveScanning) {
+                if (result && isLiveScanning) {//フレームごとに読み取り結果が返ってくるので、成功したら停止して結果をhandleSuccessに渡す
                     stopLiveScanner(controls);
                     handleSuccess(result.getText(), result.getBarcodeFormat());
                 }
@@ -92,6 +98,7 @@ async function startLiveScanner() {
     }
 }
 
+//ライブスキャン停止---------------------------------------------------------------------
 function stopLiveScanner(controls = liveControls) {
     isLiveScanning = false;
     try {
@@ -107,7 +114,7 @@ function stopLiveScanner(controls = liveControls) {
     }
 }
 
-// 写真が撮影・選択された時の処理
+// 写真が撮影・選択された時の処理--------------------------------------------------------------
 cameraInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -141,12 +148,13 @@ cameraInput.addEventListener('change', async (e) => {
     cameraInput.value = '';
 });
 
+//オーバーレイをリセット-----------------------------------------------------------------------
 function clearOverlay() {
     const ctx = overlayCanvas.getContext('2d');
     ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 }
 
-// 検出領域（四角枠）の描画処理
+// 検出領域オーバーレイの描画-----------------------------------------------------------------------
 function drawBoundingBox(points) {
     if (!points || points.length === 0) return;
     const ctx = overlayCanvas.getContext('2d');
@@ -173,6 +181,7 @@ function drawBoundingBox(points) {
     });
 }
 
+// バーコード形式の表示名を整形-----------------------------------------------------------------------
 function displayFormat(format) {
     const name = String(format || 'Barcode').toLowerCase();
     if (name.includes('ean_13') || format === ZXing.BarcodeFormat.EAN_13) return 'JAN / EAN-13';
@@ -180,6 +189,8 @@ function displayFormat(format) {
     return String(format || 'Barcode');
 }
 
+
+// キャンバスをスキャン-----------------------------------------------------------------------
 async function scanCanvas(sourceImage) {
     clearOverlay();
 
@@ -250,6 +261,7 @@ function showToast(msg) {
     }, 2000);
 }
 
+// 音を鳴らす-----------------------------------------------------------------------
 function playBeep() {
     if (!isSoundEnabled) return;
     try {
@@ -267,6 +279,7 @@ function playBeep() {
     } catch (e) {}
 }
 
+// スキャン成功時の処理-----------------------------------------------------------------------
 function handleSuccess(text, format) {
     playBeep();
 
@@ -284,6 +297,7 @@ function handleSuccess(text, format) {
     showToast("スキャン成功！");
 }
 
+// 履歴に追加------------------------------------------------------------------------------
 function addToHistory(text, format) {
     const timeStr = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     scanHistory.unshift({ text, format, time: timeStr });
@@ -291,6 +305,7 @@ function addToHistory(text, format) {
     renderHistory();
 }
 
+// 履歴を表示------------------------------------------------------------------------------
 function renderHistory() {
     if (scanHistory.length === 0) {
         emptyHistory.classList.remove('hidden');
@@ -326,14 +341,17 @@ function renderHistory() {
     lucide.createIcons();
 }
 
+// HTMLエスケープ-----------------------------------------------------------------------
 function escapeHtml(str) {
     return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
+// クリップボードにコピー-----------------------------------------------------------------------
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました'));
 }
 
+// クリップボードへコピーボタン
 copyBtn.addEventListener('click', () => {
     const text = resultText.textContent;
     if (text && !resultText.classList.contains('italic')) {
@@ -341,12 +359,14 @@ copyBtn.addEventListener('click', () => {
     }
 });
 
+// 履歴削除ボタン
 clearHistoryBtn.addEventListener('click', () => {
     scanHistory = [];
     renderHistory();
     showToast('履歴を消去しました');
 });
 
+// 音のON/OFF切り替えボタン
 soundToggleBtn.addEventListener('click', () => {
     isSoundEnabled = !isSoundEnabled;
     soundIcon.className = isSoundEnabled ? "w-3.5 h-3.5 text-emerald-400" : "w-3.5 h-3.5 text-slate-500";
