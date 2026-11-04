@@ -26,7 +26,7 @@ zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
 
     // Keep this crop aligned with the visible scanner guide in index.html.
     const cropWidth = Math.round(video.videoWidth * 0.60);
-    const cropHeight = Math.round(video.videoHeight * 0.45);
+    const cropHeight = Math.round(video.videoHeight * 0.25);
     const cropX = Math.round((video.videoWidth - cropWidth) / 2);
     const cropY = Math.round((video.videoHeight - cropHeight) / 2);
     if (context.canvas.width !== cropWidth) context.canvas.width = cropWidth;
