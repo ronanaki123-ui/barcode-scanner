@@ -18,49 +18,48 @@ scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象の�
 ]);
 scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);//高精度モード
 const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);//ZXingリーダーの初期化
-// ライブ映像のコントラスト補正
-// const originalDrawFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
-// zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
-// ZXing標準の映像処理を使用する
 
-    // 元の映像をキャンバスに描画
-    originalDrawFrame(video, dimensions, context);
-
-    if (!context) return;
-
-    try {
-        const width = context.canvas.width;
-        const height = context.canvas.height;
-
-        if (!width || !height) return;
-
-        const imageData = context.getImageData(0, 0, width, height);
-        const pixels = imageData.data;
-
-        const contrastFactor = 1.5;
-
-        // グレースケール化 + コントラスト補正
-        for (let i = 0; i < pixels.length; i += 4) {
-            const gray =
-                0.299 * pixels[i] +
-                0.587 * pixels[i + 1] +
-                0.114 * pixels[i + 2];
-
-            const contrast = Math.max(
-                0,
-                Math.min(255, (gray - 128) * contrastFactor + 128)
-            );
-
-            pixels[i] = contrast;
-            pixels[i + 1] = contrast;
-            pixels[i + 2] = contrast;
-        }
-
-        context.putImageData(imageData, 0, 0);
-
-    } catch (error) {
-        console.warn('ライブ映像の補正に失敗:', error);
+// ライブ映像のコントラスト補正（4フレームに1回だけ処理して軽快さを維持）
+let frameCount = 0;
+const drawOriginalFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
+zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
+    if (!video.videoWidth || !video.videoHeight || !context) {
+        return drawOriginalFrame(video, dimensions, context);
     }
+
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+
+    if (context.canvas.width !== width) context.canvas.width = width;
+    if (context.canvas.height !== height) context.canvas.height = height;
+
+    // 1. 元の映像をキャンバスに描画（プレビューを滑らかに保つ）
+    context.drawImage(video, 0, 0, width, height);
+
+    // 2. 4フレームに1回だけ重いコントラスト処理を実行
+    frameCount++;
+    if (frameCount % 4 === 0) {
+        try {
+            const imageData = context.getImageData(0, 0, width, height);
+            const pixels = imageData.data;
+            const contrastFactor = 1.6; // コントラストの強さ
+
+            // グレースケール化 + コントラスト補正
+            for (let i = 0; i < pixels.length; i += 4) {
+                const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
+                const contrast = Math.max(0, Math.min(255, (gray - 128) * contrastFactor + 128));
+
+                pixels[i] = contrast;     // R
+                pixels[i + 1] = contrast; // G
+                pixels[i + 2] = contrast; // B
+            }
+
+            context.putImageData(imageData, 0, 0);
+        } catch (error) {
+            console.warn('ライブ映像の補正に失敗:', error);
+        }
+    }
+};
 
 // 読み取り失敗時の再試行間隔
 zxingReader.timeBetweenDecodingAttempts = 150;
@@ -421,9 +420,6 @@ function escapeHtml(str) {
 }
 
 // クリップボードにコピー-----------------------------------------------------------------------
-caseCopyToClipboard = function(text) {
-    navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました'));
-};
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました'));
 }
