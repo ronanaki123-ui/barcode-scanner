@@ -18,8 +18,8 @@ scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [// 読み取り対象の�
 ]);
 scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);//高精度モード
 const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);//ZXingリーダーの初期化
-const drawFullVideoFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
-zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
+// const drawFullVideoFrame = zxingReader.drawFrameOnCanvas.bind(zxingReader);
+// zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
     if (!video.videoWidth || !video.videoHeight || !context) {
         return drawFullVideoFrame(video, dimensions, context);
     }
@@ -59,8 +59,8 @@ zxingReader.drawFrameOnCanvas = (video, dimensions, context) => {
         context.putImageData(imageData, 0, 0);
     } catch (err) {
         // エラー時は何もしない（通常の描画を維持）
-    }
-};
+    };
+// };
 
 // HTML要素の取得
 const cameraInput = document.getElementById('cameraInput');
@@ -115,7 +115,7 @@ async function startLiveScanner() {
     placeholderView.classList.add('hidden');
     imagePreview.classList.add('hidden');
     videoPreview.classList.remove('hidden');
-    // scannerGuide.classList.remove('hidden');
+    scannerGuide.classList.remove('hidden');
     overlayCanvas.classList.add('hidden');
     captureBtnText.textContent = 'カメラを起動中…';
 
