@@ -144,18 +144,27 @@ try {
     } catch (e) { // 検出失敗時はエラーが出るためキャッチする
         }
 
+// try {
+//         const result = zxingReader.decodeFromCanvas(canvas);
+//         if (result) {
+//             const pts = result.getResultPoints();
+//             if (pts && pts.length >= 2) {
+//                 const boxPoints = pts.map(p => ({ x: p.getX(), y: p.getY() }));
+//                 drawBoundingBox(boxPoints);
+//             }
+//             handleSuccess(result.getText(), result.getBarcodeFormat() || "Barcode");
+//             return;
+//         }
+//     } catch (e) {}
 try {
-        const result = zxingReader.decodeFromCanvas(canvas);
-        if (result) {
-            const pts = result.getResultPoints();
-            if (pts && pts.length >= 2) {
-                const boxPoints = pts.map(p => ({ x: p.getX(), y: p.getY() }));
-                drawBoundingBox(boxPoints);
-            }
-            handleSuccess(result.getText(), result.getBarcodeFormat() || "Barcode");
-            return;
-        }
-    } catch (e) {}
+    const result = zxingReader.decodeFromCanvas(canvas);
+    if (result) {
+        handleSuccess(result.getText(), result.getBarcodeFormat());
+        return;
+    }
+} catch (e) {
+    // 検出失敗時はエラーが出るためキャッチする
+}
 
     showToast("コードが読み取れませんでした");
 }
