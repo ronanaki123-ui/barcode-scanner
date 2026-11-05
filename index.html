@@ -16,7 +16,7 @@
 <!-- ヘッダー -->
     <header class="flex items-center justify-between py-2 px-1 border-b border-slate-800">
         <div class="flex items-center space-x-2">
-            <div class="p-1.5 bg-orange-600 rounded-lg text-white">
+            <div class="p-1.5 bg-orange-600 rounded-lg text-white">　<!--カメラアイコン-->
                 <i data-lucide="camera" class="w-4 h-4"></i>
             </div>
             <h1 class="text-sm font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
@@ -39,7 +39,7 @@
             <canvas id="overlayCanvas" class="absolute inset-0 w-full h-full pointer-events-none object-contain hidden"></canvas>
         </div>
 
-        <!-- プレビュープレースホルダー（中央配置に修正） -->
+        <!-- プレビュープレースホルダー-->
         <div id="placeholderView" class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center pointer-events-none">
             <div class="p-3 bg-orange-600/20 text-orange-400 rounded-full mb-2 border border-orange-500/30">
                 <i data-lucide="camera" class="w-8 h-8"></i>
@@ -47,7 +47,7 @@
             <p class="text-xs text-slate-300">ボタンを押してカメラを起動し、JANコードを撮影してください</p>
         </div>
 
-        <!-- 隠しファイル入力要素 (背面カメラ直接呼び出し) -->
+        <!-- 隠しファイル入力要素 -->
         <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
 
         <!-- 非表示解析キャンバス -->
@@ -62,7 +62,7 @@
         </button>
     </div>
 
-    <!-- 4. 最新の読み取り結果エリア -->
+    <!--読み取り結果エリア-->
     <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 shadow-lg mb-3">
         <div class="flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
             <span>スキャン結果</span>
@@ -101,14 +101,14 @@
         </dl>
     </div>
 
-    <!-- トースト通知 -->
+    <!-- トースト通知 --> 
     <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-4 py-2 rounded-full shadow-2xl flex items-center space-x-1.5 text-xs font-medium transform translate-y-16 opacity-0 transition-all duration-200 z-50 pointer-events-none">
         <i data-lucide="check" class="w-3.5 h-3.5"></i>
         <span id="toastMsg">読み取り成功</span>
     </div>
 
     <!-- ライブラリ読み込み -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script> -->
     <script src="https://unpkg.com/@zxing/library@0.21.3"></script>
     <script src="app.js"></script>
 
