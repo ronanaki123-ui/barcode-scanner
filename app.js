@@ -1,7 +1,9 @@
 // バーコードスキャナー
 
 // グローバル変数
+let testMode = true;
 let isSoundEnabled = true;
+let lastSuccessfulImageSrc = null; //成功した画像
 
 const productCatalogPromise = fetch('./products.json')
     .then(response => {
@@ -15,18 +17,19 @@ const productCatalogPromise = fetch('./products.json')
 
 const scanHints = new Map();
 scanHints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-    ZXing.BarcodeFormat.EAN_13,
-    // ZXing.BarcodeFormat.EAN_8,
-    ZXing.BarcodeFormat.UPC_A,
-    // ZXing.BarcodeFormat.UPC_E,
-    // ZXing.BarcodeFormat.CODE_128,
-    // ZXing.BarcodeFormat.QR_CODE
+    ZXing.BarcodeFormat.EAN_13,        //日本規格13桁
+    // ZXing.BarcodeFormat.EAN_8,      //日本規格8桁
+    ZXing.BarcodeFormat.UPC_A,         //米国規格12桁
+    // ZXing.BarcodeFormat.UPC_E,      //米国規格8桁
+    // ZXing.BarcodeFormat.CODE_128,   //CODE128
+    // ZXing.BarcodeFormat.QR_CODE     //QRコード
 ]);
 scanHints.set(ZXing.DecodeHintType.TRY_HARDER, true);
 const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);
 
 //DOM取得
 const cameraInput = document.getElementById('cameraInput');
+const photoInput = document.getElementById('photoInput');
 const imagePreview = document.getElementById('imagePreview');
 const videoPreview = document.getElementById('videoPreview');
 const scannerGuide = document.getElementById('scannerGuide');
@@ -35,6 +38,8 @@ const placeholderView = document.getElementById('placeholderView');
 const canvas = document.getElementById('captureCanvas');
 const captureBtn = document.getElementById('captureBtn');
 const captureBtnText = document.getElementById('captureBtnText');
+const selectPhotoBtn = document.getElementById('selectPhotoBtn');
+const shootPhotoBtn = document.getElementById('shootPhotoBtn');
 const resultText = document.getElementById('resultText');
 const scanFormat = document.getElementById('scanFormat');
 const resultActions = document.getElementById('resultActions');
@@ -47,12 +52,42 @@ const soundIcon = document.getElementById('soundIcon');
 const soundLabel = document.getElementById('soundLabel');
 const toast = document.getElementById('toast');
 const toastMsg = document.getElementById('toastMsg');
+const testContaner = document.getElementById('testContainer');
 
 lucide.createIcons();
 
-//カメラを起動して撮影ボタン
+//テストモード
+if (!testMode) {
+    testContaner.classList.add('hidden');
+
+}
+
+//起動時にPC環境かどうかを判定して写真撮影ボタンを無効化する
+window.addEventListener('DOMContentLoaded', () => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (!isMobile) {
+        const shootPhotoBtn = document.getElementById('shootPhotoBtn');
+        if (shootPhotoBtn) {
+            shootPhotoBtn.disabled = true; // ボタンを無効化
+            shootPhotoBtn.title = "PCからはカメラ撮影をご利用いただけません"; // ホバー時の案内
+        }
+    }
+});
+
+//ライブビュー
 captureBtn.addEventListener('click', () => {
     cameraInput.click();
+});
+
+//カメラ撮影ボタン
+shootPhotoBtn.addEventListener('click', () => {
+    cameraInput.click();
+});
+
+//画像選択ボタン
+selectPhotoBtn.addEventListener('click', () => {
+    photoInput.click();
 });
 
 //クリップボードにコピーボタン
@@ -71,11 +106,12 @@ soundToggleBtn.addEventListener('click', () => {
 });
 
 // 写真が撮影・選択された時の処理-----------------------------------------------------------
-cameraInput.addEventListener('change', async (e) => {
+cameraInput.addEventListener('change', (e) => handleImageSelected(e));
+photoInput.addEventListener('change', (e) => handleImageSelected(e));
+
+async function handleImageSelected(e) {
     const file = e.target.files[0];
     if (!file) return;
-
-    captureBtnText.textContent = '解析中…';
 
     const img = new Image();
     img.onload = async () => {
@@ -83,28 +119,49 @@ cameraInput.addEventListener('change', async (e) => {
         imagePreview.src = img.src;
         imagePreview.classList.remove('hidden');
         placeholderView.classList.add('hidden');
-        if (scannerGuide) scannerGuide.classList.add('hidden');
+        if (typeof scannerGuide !== 'undefined' && scannerGuide) {
+            scannerGuide.classList.add('hidden');
+        }
 
         //オーバーレイ用キャンバス初期化
         overlayCanvas.width = img.width;
         overlayCanvas.height = img.height;
         overlayCanvas.classList.remove('hidden');
-        clearOverlay();
+        if (typeof clearOverlay === 'function') {
+            clearOverlay();
+        }
 
         //解析キャンバスに描画
         const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false; //アンチエイリアスを無効化
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
 
+        //軽くコントラストを上げる
+        const baseImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const basePixels = baseImageData.data;
+        const initialContrast = 1.25; // 1.25倍
+
+        for (let i = 0; i < basePixels.length; i += 4) {
+            // グレースケール化を挟みつつ、軽くコントラストを上げる
+            const gray = 0.299 * basePixels[i] + 0.587 * basePixels[i + 1] + 0.114 * basePixels[i + 2];
+            const contrast = Math.max(0, Math.min(255, (gray - 128) * initialContrast + 128));
+            basePixels[i] = contrast;
+            basePixels[i + 1] = contrast;
+            basePixels[i + 2] = contrast;
+        }
+        ctx.putImageData(baseImageData, 0, 0);
+
         //解析開始
         await scanCanvas(img);
-        captureBtnText.textContent = 'カメラを起動してJANコードをスキャン';
+        
         URL.revokeObjectURL(img.src);
     };
+
     img.src = URL.createObjectURL(file);
-    cameraInput.value = '';
-});
+    e.target.value = '';
+};
 
 // キャンバスをスキャン----------------------------------------------------------------
 async function scanCanvas(sourceImage) {
@@ -113,7 +170,7 @@ async function scanCanvas(sourceImage) {
     //1.ネイティブAPI(BarcodeDetector)を試す
     if ('BarcodeDetector' in window) {
         try {
-            const requestedFormats = ['ean_13','upc_a',];　//'ean_8', 'upc_e'
+            const requestedFormats = ['ean_13','upc_a',];  //'ean_8', 'upc_e'
             const supportedFormats = await BarcodeDetector.getSupportedFormats();
             const formats = requestedFormats.filter(format => supportedFormats.includes(format));
             if (formats.length) {
@@ -122,7 +179,7 @@ async function scanCanvas(sourceImage) {
                 if (barcodes.length > 0) {
                     const barcode = barcodes[0];
                     if (barcode.cornerPoints) drawBoundingBox(barcode.cornerPoints);
-                    handleSuccess(barcode.rawValue, displayFormat(barcode.format));
+                    handleSuccess(barcode.rawValue, displayFormat(barcode.format),sourceImage);
                     return;
                 }
             }
@@ -134,40 +191,78 @@ async function scanCanvas(sourceImage) {
     //2.ZXingの通常読み取りを試す
     try {
         const result = await zxingReader.decodeFromImageElement(sourceImage);
-        handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()));
+        handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()),sourceImage);
         return;
     } catch (error) {
         console.log('ZXing読み取り失敗:', error);
     }
 
-    //3.コントラストを強烈に上げた画像を作成してもう一度試す
-    try {
-        const scale = Math.min(1, 2200 / canvas.width);
-        const enhancedCanvas = document.createElement('canvas');
-        enhancedCanvas.width = Math.max(1, Math.round(canvas.width * scale));
-        enhancedCanvas.height = Math.max(1, Math.round(canvas.height * scale));
-        const enhancedContext = enhancedCanvas.getContext('2d', { willReadFrequently: true });
-        enhancedContext.drawImage(canvas, 0, 0, enhancedCanvas.width, enhancedCanvas.height);
 
-        const imageData = enhancedContext.getImageData(0, 0, enhancedCanvas.width, enhancedCanvas.height);
-        const pixels = imageData.data;
-        for (let i = 0; i < pixels.length; i += 4) {
-            const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
-            const contrast = Math.max(0, Math.min(255, (gray - 128) * 1.8 + 128)); //コントラスト 1.8倍
-            pixels[i] = contrast;
-            pixels[i + 1] = contrast;
-            pixels[i + 2] = contrast;
+ // 3.二値化のしきい値を段階的に変えながら試す
+const thresholds = []; // しきい値
+    for (let t = 60; t <= 120; t += 10) { //60~120まで10刻み
+        thresholds.push(t);
+    }
+    let lastEnhancedImage = null;
+    
+    const scale = Math.min(1, 2200 / canvas.width);
+    const enhancedCanvas = document.createElement('canvas');
+    enhancedCanvas.width = Math.max(1, Math.round(canvas.width * scale));
+    enhancedCanvas.height = Math.max(1, Math.round(canvas.height * scale));
+    const enhancedContext = enhancedCanvas.getContext('2d', { willReadFrequently: true });
+    enhancedContext.imageSmoothingEnabled = false;
+
+    const baseCanvas = document.createElement('canvas');
+    baseCanvas.width = enhancedCanvas.width;
+    baseCanvas.height = enhancedCanvas.height;
+    const baseCtx = baseCanvas.getContext('2d', { willReadFrequently: true });
+    baseCtx.drawImage(canvas, 0, 0, enhancedCanvas.width, enhancedCanvas.height);
+    const originalImageData = baseCtx.getImageData(0, 0, baseCanvas.width, baseCanvas.height);
+
+    for (const threshold of thresholds) {
+        try {
+            const imageData = new ImageData(
+                new Uint8ClampedArray(originalImageData.data),
+                originalImageData.width,
+                originalImageData.height
+            );
+            const pixels = imageData.data;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                // グレースケール化
+                const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
+                
+                //二値化処理
+                const binary = gray < threshold ? 0 : 255;
+                
+                pixels[i] = binary;
+                pixels[i + 1] = binary;
+                pixels[i + 2] = binary;
+            }
+            
+            enhancedContext.putImageData(imageData, 0, 0);
+
+            const enhancedImage = new Image();
+            enhancedImage.src = enhancedCanvas.toDataURL('image/png');
+            await enhancedImage.decode();
+            
+            lastEnhancedImage = enhancedImage;
+            
+            const result = await zxingReader.decodeFromImageElement(enhancedImage);
+            handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()), enhancedImage);
+            return;
+        } catch (error) {
+            console.log(`しきい値 (${threshold}) での読み取り失敗`);
         }
-        enhancedContext.putImageData(imageData, 0, 0);
-
-        const enhancedImage = new Image();
-        enhancedImage.src = enhancedCanvas.toDataURL('image/png');
-        await enhancedImage.decode();
-        const result = await zxingReader.decodeFromImageElement(enhancedImage);
-        handleSuccess(result.getText(), displayFormat(result.getBarcodeFormat()));
-        return;
-    } catch (error) {
-        console.log('コントラスト強化画像読み取り失敗:', error);
+        if (lastEnhancedImage) {
+        const testImagePreview = document.getElementById('testImagePreview');
+        const testImagePlaceholder = document.getElementById('testImagePlaceholder');
+        if (testImagePreview && testImagePlaceholder) {
+            testImagePreview.src = lastEnhancedImage.src;
+            testImagePreview.classList.remove('hidden');
+            testImagePlaceholder.classList.add('hidden');
+        }
+    }
     }
 
     showToast('コードが読み取れませんでした。ピントを合わせて再度撮影してください');
@@ -176,11 +271,10 @@ async function scanCanvas(sourceImage) {
 //トーストメッセージの表示----------------------------------------------------------------
 function showToast(msg) {
     toastMsg.textContent = msg;
-    toast.classList.remove('translate-y-16', 'opacity-0');
-    toast.classList.add('translate-y-0', 'opacity-100');
+    toast.classList.add('show'); // 表示状態にするクラスを追加
+    
     setTimeout(() => {
-        toast.classList.remove('translate-y-0', 'opacity-100');
-        toast.classList.add('translate-y-16', 'opacity-0');
+        toast.classList.remove('show'); // 2秒後にクラスを外して隠す
     }, 2000);
 }
 
@@ -235,8 +329,17 @@ function playBeep() {
 }
 
 // スキャン成功時の処理---------------------------------------------------------------
-async function handleSuccess(text, format) {
+async function handleSuccess(text, format, successImage) {
     playBeep();
+
+    const testImagePreview = document.getElementById('testImagePreview');
+    const testImagePlaceholder = document.getElementById('testImagePlaceholder');
+
+if (successImage && successImage.src && testMode) {
+        testImagePreview.src = successImage.src;
+        testImagePreview.classList.remove('hidden');
+        testImagePlaceholder.classList.add('hidden');
+    }
 
     resultText.textContent = text;
     resultText.classList.remove('text-slate-500', 'italic');
@@ -254,6 +357,7 @@ async function handleSuccess(text, format) {
     productDescription.textContent = product?.description || '-';
 
     showToast("スキャン成功！");
+    
 }
 
 // バーコード形式の表示名を整形-----------------------------------------------------------

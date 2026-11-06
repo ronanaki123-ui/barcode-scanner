@@ -1,8 +1,459 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/*-----------------------
+カラー変数の定義
+-----------------------*/
+:root {
+    --bg-color: #fff8e0;
+    --main-color: #ff7c24;
+    --main-darker-color: #e35914;
+    --main-color-2: #ffb23e;
+    --main-darker-color-2: #dfa016;
+    --accent-color: #33e7c3;
+    --accent-darker-color: #22c6c3;
+    --dark-color: #3b241e;
+    --sub-text-color: #d1d5db;
+    --result-bg-color: #5c554d;
+    --result-border-color: #76716c;
+    --transparent-bg-color: rgba(108, 104, 94, 0.7);
+    --gradient-start: #ef4444;
+    --gradient-end: #fb923c;    
+}
+
+/*-----------------------
+スタイルの基本設定
+-----------------------*/
+
 body {
     font-family: 'Inter', sans-serif;
-    background-color: #fff8e0;
+    background-color: var(--bg-color);
+}
+
+/*ヘッダー -------------------------------------------*/
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.25rem;
+    border-bottom: 1px solid var(--main-color);
+}
+
+.header-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/*カメラアイコンのボックス*/
+.icon-box {
+    padding: 0.375rem;
+    background-color: var(--main-color); 
+    border-radius: 0.375rem; 
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.camera-icon {
+    width: 1rem; 
+    height: 1rem;
+}
+
+/*ソシアル製薬バーコードスキャナー*/
+.gradient-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* サウンドボタン */
+.sound-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem; 
+    font-size: 0.75rem; 
+    background-color: var(--dark-color); 
+    color: white;
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--main-color);
+    transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.sound-toggle-btn:hover {
+    background-color: var(--main-color); 
+}
+
+/* スピーカーアイコン */
+.sound-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: var(--main-color); /*(ON状態の初期値)*/
+}
+
+
+/*プレビューボックス--------------------------------------*/
+/*外枠コンテナ*/
+.scanner-preview-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-height: 36vh;
+    background-color: black;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    border: 2px solid var(--main-color); 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+/* プレビュー画像とキャンバスの親ラッパー */
+.preview-content-wrapper {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* プレビュー画像 */
+.preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* オーバーレイ用キャンバス */
+.preview-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    object-fit: contain;
+}
+
+/* プレースホルダー */
+.preview-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+    pointer-events: none;
+}
+
+/* プレースホルダー内のアイコン背景ボックス */
+.placeholder-icon-box {
+    padding: 0.75rem;
+    background-color: var(--dark-color);
+    color: var(--main-color);
+    border-radius: 9999px;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--main-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* プレースホルダー内のアイコンサイズ */
+.placeholder-icon-size {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* プレースホルダーのテキスト */
+.placeholder-text {
+    font-size: 0.75rem;
+    color: var(--sub-text-color);
+}
+
+/*写真選択/撮影ボタン--------------------------------------*/
+/* ボタン共通コンテナ */
+.button-container {
+    width: 100%;
+    margin-bottom: 0.75rem;
+}
+
+/* ボタン共通アイコンサイズ*/
+.btn-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/*カメラ起動ボタン*/
+.btn-camera-on {
+    width: 100%;
+    background-color: var(--main-color);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--main-darker-color);
+    box-shadow: 0 10px 15px -10px var(--main-darker-color);
+    cursor: pointer;
+    transition: background-color 150ms ease, transform 150ms ease;
+}
+.btn-camera-on:hover {
+    background-color: var(--main-darker-color);
+}
+.btn-camera-on:active {
+    transform: scale(0.99); 
+}
+
+.sub-button-container {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+/*写真選択ボタン*/
+.btn-photo-select {
+    width: 100%;
+    height: 100%;
+    background-color: var(--accent-color);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.25rem 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--accent-darker-color);
+    box-shadow: 0 10px 15px -10px var(--accent-darker-color);
+    cursor: pointer;
+    transition: background-color 150ms ease, transform 150ms ease;
+}
+.btn-photo-select:hover {
+    background-color: var(--accent-darker-color); 
+}
+.btn-photo-select:active {
+    transform: scale(0.99);
+}
+
+
+/*写真撮影ボタン*/
+.btn-photo-shoot {
+    width: 100%;
+    height: 100%;
+    background-color: var(--main-color-2);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.25rem 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--main-darker-color-2);
+    box-shadow: 0 10px 15px -10px var(--main-darker-color-2);
+    cursor: pointer;
+    transition: background-color 150ms ease, transform 150ms ease;
+}
+.btn-photo-shoot:hover {
+    background-color: var(--main-darker-color-2); 
+}
+.btn-photo-shoot:active {
+    transform: scale(0.99);
+}
+button:disabled,
+.btn-photo-shoot:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;    /* カーソルを禁止マークにする */
+    filter: grayscale(30%);
+    pointer-events: none;   /* クリックイベントを完全に無効化する */
+}
+
+/*スキャン結果エリア--------------------------------------*/
+/* スキャン結果コンテナ */
+.result-container {
+    background-color: var(--result-bg-color);
+    border: 1px solid var(--result-border-color);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    box-shadow: 0 10px 15px -10px black;
+    margin-bottom: 0.75rem;
+}
+
+/* スキャンフォーマット表示*/
+.result-format {
+    color: var(--main-color);
+    font-family: monospace;
+}
+
+/* 結果コンテンツボックス */
+.result-content-box {
+    background-color: var(--dark-color);
+    border: 1px solid var(--main-color);
+    border-radius: 0.5rem;
+    padding: 0.225rem;
+    min-height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/*結果テキスト(未読時のプレースホルダー含む)*/
+.result-text {
+    color: var(--sub-text-color);
+    font-style: italic;
+    font-size: 0.75rem;
+    word-break: break-all;
+    padding-right: 0.5rem;
+    padding-left: 0.2rem;
+}
+
+/*結果アクションボタン群のコンテナ*/
+.result-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+/* アクションボタン(コピー・Google検索)の共通スタイル*/
+.action-btn {
+    padding: 0.375rem;
+    background-color: var(--result-bg-color);
+    color: white;
+    border-radius: 0.25rem;
+    border: 1px solid var(--result-border-color);
+    cursor: pointer;
+    transition: background-color 150ms ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+.action-btn:hover {
+    background-color: #7f776b;
+}
+
+/* Google検索ボタン固有の文字色*/
+.action-btn-search {
+    color: var(--main-color-2);
+}
+
+/*アクションボタン内のアイコンサイズ*/
+.action-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+/*商品情報エリア--------------------------------------*/
+/*商品情報コンテナ*/
+.product-info-container {
+    flex: 1;
+    background-color: var(--transparent-bg-color);
+    border: 1px solid var(--result-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    min-height: 160px;
+}
+
+/*見出し(「商品情報」)*/
+.product-section-title {
+    font-size: 0.90rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 1rem;
+
+    background-color: var(--main-color);
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--main-darker-color);
+}
+
+/* 定義リスト(dl)の間隔を調整*/
+.product-dl {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/*項目ラベル(dt)*/
+.product-dt {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--main-darker-color-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    background-color: white;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+/* 商品名(dd) */
+.product-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    word-break: break-word;
+}
+
+/*商品説明(dd)*/
+.product-desc {
+    font-size: 0.875rem;
+    color: var(--sub-text-color);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/*トースト通知--------------------------------------*/
+.toast-notification {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    /* 初期状態：下方に少し沈めておき、透明にする */
+    transform: translateX(-50%) translateY(4rem); 
+    background-color: var(--main-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    box-shadow: 0 25px 50px -12px var(--transparent-bg-color);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 200ms ease;
+    z-index: 50;
+    pointer-events: none;
+}
+
+/*トースト内のチェックアイコンサイズ*/
+.toast-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+}
+
+/*表示位置・不透明度を戻す */
+.toast-notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
 }
 
 /* 撮影成功時のカメラフレームフラッシュアニメーション */
@@ -13,4 +464,54 @@ body {
 
 .flash-active {
     animation: scanFlash 0.25s ease-out forwards;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/*テスト用--------------------------------------------------*/
+
+/* エリア全体を包むコンテナ */
+.test-container {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background-color: rgba(30, 41, 59, 0.8);
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+}
+
+/* 「テスト用出力画像」の見出し */
+.test-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+}
+
+/* 画像を囲むボックス */
+.test-content-box {
+    background-color: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(51, 65, 85, 0.8);
+    border-radius: 0.5rem;
+    padding: 0.625rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    overflow: hidden;
+}
+
+/* テスト用画像本体 */
+.test-image {
+    max-height: 160px;
+    object-fit: contain;
+}
+
+/* プレースホルダーテキスト */
+.test-placeholder {
+    font-size: 0.75rem; 
+    color: #64748b;
+    font-style: italic;
 }
