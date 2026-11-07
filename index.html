@@ -13,7 +13,9 @@
 </head>
 <body class="text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden antialiased p-3 sm:p-5 max-w-xl mx-auto">
 
-<!-- ヘッダー -->
+<!---------------------------------------------------------------------
+ヘッダー 
+---------------------------------------------------------------------->
     <header class="app-header">
         <div class="header-title-group">
             <div class="icon-box">
@@ -24,13 +26,18 @@
             </h1>
         </div>
         <!-- サウンド切り替え -->
-        <button id="soundToggleBtn" class="sound-toggle-btn">
-            <i data-lucide="volume-2" id="soundIcon" class="sound-icon"></i>
+        <button id="soundToggleBtn" class="sound-toggle-btn" data-enabled="true">
+            <!--ON用-->
+            <i data-lucide="volume-2" class="sound-icon icon-on"></i>
+            <!--OFF用-->
+            <i data-lucide="volumeOff" class="sound-icon icon-off"></i>
             <span id="soundLabel">音: ON</span>
         </button>
     </header>
 
-<!-- 撮影プレビューエリア -->
+<!---------------------------------------------------------------------
+撮影プレビューエリア
+---------------------------------------------------------------------->
 <div class="scanner-preview-container">
     
     <!-- 撮影した画像のプレビューとキャンバス -->
@@ -57,7 +64,9 @@
     <canvas id="captureCanvas" class="hidden"></canvas>
 </div>
 
-    <!--スキャン開始ボタン-->
+<!---------------------------------------------------------------------
+スキャン開始ボタン
+---------------------------------------------------------------------->
     <div>
         <!--スキャン開始ボタン-->
         <div class="button-container">
@@ -66,7 +75,6 @@
                 <span id="captureBtnText">ライブビューでバーコードをスキャン</span>
             </button>
         </div>
-        
         <div class="sub-button-container">
             <!--写真選択ボタン-->
             <div class="button-container">
@@ -84,7 +92,10 @@
             </div>
         </div>
     </div>
-<!--読み取り結果エリア-->
+
+<!---------------------------------------------------------------------
+スキャン結果エリア
+---------------------------------------------------------------------->
     <div class="result-container">
         <div class="result-header">
             <span>スキャン結果</span>
@@ -93,7 +104,7 @@
 
         <div id="resultContent" class="result-content-box">
             <p id="resultText" class="result-text">
-                ボタンを押すとコードを読み取ります
+                スキャンしたJANコードがこちらに表示されます
             </p>
             
             <!-- 結果アクションボタン-->
@@ -108,13 +119,39 @@
         </div>
     </div>
 
-<!-- 商品名・説明 -->
+<!---------------------------------------------------------------------
+商品画像表示エリア
+---------------------------------------------------------------------->
+    <div id="mainImageContainer" class="main-image-container">
+        <div class="main-image-content-box">
+            <img id="mainImagePreview" class="main-image-preveiw hidden" alt="画像">
+            <span id="mainImagePlaceholder" class="main-image-placeholder">スキャンした商品の画像が表示されます</span>
+        </div>
+    </div>
+
+<!---------------------------------------------------------------------
+商品情報エリア
+---------------------------------------------------------------------->
     <div class="product-info-container">
         <h2 class="product-section-title">商品情報</h2>
         <dl class="product-dl">
             <div>
                 <dt class="product-dt">商品名</dt>
                 <dd id="productName" class="product-name">JANコードをスキャンして商品を検索</dd>
+            </div>
+            <div class="product-info-sub">
+                <div>
+                    <dt class="product-sub-dt">値段</dt>
+                    <dd id="productPrice" class="product-price"> - </dd>
+                </div>
+                <div>
+                    <dt class="product-sub-dt">内容量</dt>
+                    <dd id="productContent" class="product-content"> - </dd>
+                </div>
+                <div>
+                    <dt class="product-sub-dt">在庫</dt>
+                    <dd id="productStock" class="product-stock"> - </dd>
+                </div>
             </div>
             <div>
                 <dt class="product-dt">商品説明</dt>
@@ -123,7 +160,9 @@
         </dl>
     </div>
 
-<!-- テスト用出力画像エリア -->
+<!---------------------------------------------------------------------
+テスト用画像出力エリア
+---------------------------------------------------------------------->
     <div id="testContainer" class="test-container">
         <h2 class="test-section-title">テスト用出力画像</h2>
         <div class="test-content-box">
@@ -132,10 +171,13 @@
         </div>
     </div>
 
+<!---------------------------------------------------------------------
+その他
+---------------------------------------------------------------------->
 <!-- トースト通知 --> 
     <div id="toast" class="toast-notification">
         <i data-lucide="check" class="toast-icon"></i>
-        <span id="toastMsg">読み取り成功</span>
+        <span id="toastMsg">読み取り成功！</span>
     </div>
 
     <!-- ライブラリ読み込み -->

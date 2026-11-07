@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/*-----------------------
+/*-----------------------------------------------------
 カラー変数の定義
------------------------*/
+-----------------------------------------------------*/
 :root {
     --bg-color: #fff8e0;
     --main-color: #ff7c24;
@@ -15,22 +15,35 @@
     --sub-text-color: #d1d5db;
     --result-bg-color: #5c554d;
     --result-border-color: #76716c;
-    --transparent-bg-color: rgba(108, 104, 94, 0.7);
-    --gradient-start: #ef4444;
-    --gradient-end: #fb923c;    
+    --transparent-bg-color: rgba(110, 105, 100, 0.7);
 }
 
-/*-----------------------
+/*-----------------------------------------------------
 スタイルの基本設定
------------------------*/
+-----------------------------------------------------*/
 
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--bg-color);
+    background: linear-gradient(to top, var(--main-color), var(--main-color-2), var(--bg-color));
 }
-
-/*ヘッダー -------------------------------------------*/
-
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--main-color);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--main-color-2);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--main-darker-color-2);
+}
+/*-----------------------------------------------------
+ヘッダー
+-----------------------------------------------------*/
 .app-header {
     display: flex;
     align-items: center;
@@ -61,17 +74,17 @@ body {
     height: 1rem;
 }
 
-/*ソシアル製薬バーコードスキャナー*/
+/*見出し「ソシアル製薬バーコードスキャナー」*/
 .gradient-title {
     font-size: 0.875rem;
     font-weight: 700;
-    background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+    background: linear-gradient(to right, var(--main-color), var(--main-color-2));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
 
-/* サウンドボタン */
+/*サウンドボタン*/
 .sound-toggle-btn {
     display: flex;
     align-items: center;
@@ -85,20 +98,34 @@ body {
     transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
 }
-
 .sound-toggle-btn:hover {
-    background-color: var(--main-color); 
+    background-color: var(--result-bg-color); 
 }
 
-/* スピーカーアイコン */
+/*スピーカーアイコン*/
 .sound-icon {
     width: 0.875rem;
     height: 0.875rem;
-    color: var(--main-color); /*(ON状態の初期値)*/
+}
+/*ON*/
+button[data-enabled="true"] .icon-off {
+    display: none; /* OFF用アイコンを消す */
+}
+button[data-enabled="true"] .sound-icon.icon-on {
+    color: var(--accent-color);
+}
+/*OFF*/
+button[data-enabled="false"] .icon-on {
+    display: none; /* ON用アイコンを消す */
+}
+button[data-enabled="false"] .sound-icon.icon-off {
+    color: var(--result-border-color);
 }
 
 
-/*プレビューボックス--------------------------------------*/
+/*-----------------------------------------------------
+プレビューエリア
+-----------------------------------------------------*/
 /*外枠コンテナ*/
 .scanner-preview-container {
     position: relative;
@@ -179,7 +206,9 @@ body {
     color: var(--sub-text-color);
 }
 
-/*写真選択/撮影ボタン--------------------------------------*/
+/*-----------------------------------------------------
+ライブビュー開始・写真選択・撮影ボタンエリア
+-----------------------------------------------------*/
 /* ボタン共通コンテナ */
 .button-container {
     width: 100%;
@@ -195,7 +224,7 @@ body {
 /*カメラ起動ボタン*/
 .btn-camera-on {
     width: 100%;
-    background-color: var(--main-color);
+    background-color: var(--accent-color);
     color: white;
     font-weight: 700;
     font-size: 1rem;
@@ -205,13 +234,13 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 1px solid var(--main-darker-color);
-    box-shadow: 0 10px 15px -10px var(--main-darker-color);
+    border: 1px solid var(--accent-darker-color);
+    box-shadow: 0 10px 15px -10px var(--accent-darker-color);
     cursor: pointer;
     transition: background-color 150ms ease, transform 150ms ease;
 }
 .btn-camera-on:hover {
-    background-color: var(--main-darker-color);
+    background-color: var(--accent-darker-color);
 }
 .btn-camera-on:active {
     transform: scale(0.99); 
@@ -228,7 +257,7 @@ body {
 .btn-photo-select {
     width: 100%;
     height: 100%;
-    background-color: var(--accent-color);
+    background-color: var(--main-color);
     color: white;
     font-weight: 700;
     font-size: 1rem;
@@ -238,13 +267,13 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 1px solid var(--accent-darker-color);
-    box-shadow: 0 10px 15px -10px var(--accent-darker-color);
+    border: 1px solid var(--main-darker-color);
+    box-shadow: 0 10px 15px -10px var(--main-darker-color);
     cursor: pointer;
     transition: background-color 150ms ease, transform 150ms ease;
 }
 .btn-photo-select:hover {
-    background-color: var(--accent-darker-color); 
+    background-color: var(--main-darker-color); 
 }
 .btn-photo-select:active {
     transform: scale(0.99);
@@ -279,12 +308,14 @@ body {
 button:disabled,
 .btn-photo-shoot:disabled {
     opacity: 0.5;
-    cursor: not-allowed;    /* カーソルを禁止マークにする */
+    cursor: not-allowed; 
     filter: grayscale(30%);
-    pointer-events: none;   /* クリックイベントを完全に無効化する */
+    pointer-events: none;   /*クリックイベントを完全に無効化*/
 }
 
-/*スキャン結果エリア--------------------------------------*/
+/*-----------------------------------------------------
+スキャン結果エリア
+-----------------------------------------------------*/
 /* スキャン結果コンテナ */
 .result-container {
     background-color: var(--result-bg-color);
@@ -307,7 +338,7 @@ button:disabled,
     border: 1px solid var(--main-color);
     border-radius: 0.5rem;
     padding: 0.225rem;
-    min-height: 35px;
+    min-height: 2.18rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -359,8 +390,40 @@ button:disabled,
     width: 1rem;
     height: 1rem;
 }
+/*-----------------------------------------------------
+商品画像エリア
+-----------------------------------------------------*/
+.main-image-container {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: var(--result-bg-color);
+    border: 1px solid var(--result-border-color);
+    border-radius: 0.5rem;
+    padding: 0.62rem;
+    margin-bottom: 0.62rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-/*商品情報エリア--------------------------------------*/
+.main-image-content-box {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-image-preveiw {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+/*-----------------------------------------------------
+商品情報エリア
+-----------------------------------------------------*/
 /*商品情報コンテナ*/
 .product-info-container {
     flex: 1;
@@ -391,15 +454,28 @@ button:disabled,
     gap: 1rem;
 }
 
-/*項目ラベル(dt)*/
+/*項目ラベル(dt)(商品名、商品説明)*/
 .product-dt {
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--main-darker-color-2);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     display: inline-block;
-    background-color: white;
+    background-color: var(--transparent-bg-color);
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+/*項目ラベルサブ(dt)(商品名、商品説明)*/
+.product-sub-dt {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--main-darker-color-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
     padding: 0.1rem 0.3rem;
     border-radius: 0.25rem;
     margin-bottom: 0.25rem;
@@ -407,9 +483,44 @@ button:disabled,
 
 /* 商品名(dd) */
 .product-name {
-    font-size: 1rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: white;
+    word-break: break-word;
+}
+
+.product-info-sub {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    
+    flex-shrink: 0;
+}
+
+/*商品値段(dd)*/
+.product-price {
+    font-size: 0.875rem;
+    color: var(--sub-text-color);
+    padding-left: 0.3rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/*商品内容量(dd)*/
+.product-content {
+    font-size: 0.875rem;
+    color: var(--sub-text-color);
+    padding-left: 0.3rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/*商品在庫(dd)*/
+.product-stock {
+    font-size: 0.875rem;
+    color: var(--sub-text-color);
+    padding-left: 0.3rem;
+    white-space: pre-wrap;
     word-break: break-word;
 }
 
@@ -417,18 +528,21 @@ button:disabled,
 .product-desc {
     font-size: 0.875rem;
     color: var(--sub-text-color);
+    padding-left: 0.3rem;
     white-space: pre-wrap;
     word-break: break-word;
 }
 
-/*トースト通知--------------------------------------*/
+/*-----------------------------------------------------
+トースト通知
+-----------------------------------------------------*/
 .toast-notification {
     position: fixed;
     bottom: 1rem;
     left: 50%;
-    /* 初期状態：下方に少し沈めておき、透明にする */
+    /*初期状態：下方に少し沈めておき、透明にする*/
     transform: translateX(-50%) translateY(4rem); 
-    background-color: var(--main-color);
+    background-color: var(--accent-color);
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 9999px;
@@ -469,31 +583,39 @@ button:disabled,
 .hidden {
     display: none !important;
 }
+/*-----------------------------------------------------
+統計情報エリア
+-----------------------------------------------------*/
 
 
-/*テスト用--------------------------------------------------*/
 
-/* エリア全体を包むコンテナ */
+
+
+/*-----------------------------------------------------
+テストエリア
+-----------------------------------------------------*/
+
+/*テストエリアコンテナ*/
 .test-container {
     margin-top: 0.75rem;
     padding: 0.75rem;
-    background-color: rgba(30, 41, 59, 0.8);
-    border: 1px solid #334155;
+    background-color: var(--transparent-bg-color);
+    border: 1px solid var(--result-border-color);
     border-radius: 0.75rem;
 }
 
-/* 「テスト用出力画像」の見出し */
+/*「テスト用出力画像」の見出し*/
 .test-section-title {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--sub-text-color);
     margin-bottom: 0.5rem;
 }
 
-/* 画像を囲むボックス */
+/*画像のボックス*/
 .test-content-box {
-    background-color: rgba(15, 23, 42, 0.9);
-    border: 1px solid rgba(51, 65, 85, 0.8);
+    background-color: var(--dark-color);
+    border: 1px solid var(--result-bg-color);
     border-radius: 0.5rem;
     padding: 0.625rem;
     display: flex;
@@ -503,13 +625,13 @@ button:disabled,
     overflow: hidden;
 }
 
-/* テスト用画像本体 */
+/*テスト用画像本体*/
 .test-image {
     max-height: 160px;
     object-fit: contain;
 }
 
-/* プレースホルダーテキスト */
+/*プレースホルダーテキスト*/
 .test-placeholder {
     font-size: 0.75rem; 
     color: #64748b;

@@ -1,11 +1,11 @@
 // バーコードスキャナー
 
 // グローバル変数
-let testMode = true;
-let isSoundEnabled = true;
+let testMode = true;  //テストモードON/OFF
+let isSoundEnabled = true; //音声ON/OFF
 let lastSuccessfulImageSrc = null; //成功した画像
 
-const productCatalogPromise = fetch('./products.json')
+const productCatalogPromise = fetch('./products.json') //JSONを読み取る
     .then(response => {
         if (!response.ok) throw new Error(`products.json request failed: ${response.status}`);
         return response.json();
@@ -46,12 +46,17 @@ const resultActions = document.getElementById('resultActions');
 const copyBtn = document.getElementById('copyBtn');
 const searchGoogleBtn = document.getElementById('searchGoogleBtn');
 const productName = document.getElementById('productName');
+const productPrice = document.getElementById('productPrice');
+const productContent = document.getElementById('productContent');
+const productStock = document.getElementById('productStock');
 const productDescription = document.getElementById('productDescription');
 const soundToggleBtn = document.getElementById('soundToggleBtn');
 const soundIcon = document.getElementById('soundIcon');
 const soundLabel = document.getElementById('soundLabel');
 const toast = document.getElementById('toast');
 const toastMsg = document.getElementById('toastMsg');
+const mainImagePreview = document.getElementById('mainImagePreview');
+const mainImagePlaceholder = document.getElementById('mainImagePlaceholder');
 const testContaner = document.getElementById('testContainer');
 
 lucide.createIcons();
@@ -59,7 +64,6 @@ lucide.createIcons();
 //テストモード
 if (!testMode) {
     testContaner.classList.add('hidden');
-
 }
 
 //起動時にPC環境かどうかを判定して写真撮影ボタンを無効化する
@@ -75,8 +79,8 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-//ライブビュー
-captureBtn.addEventListener('click', () => {
+//ライブビューボタン
+captureBtn.addEventListener('click', () => { //イベントリスナーでクリックを感知、次の処理を実行
     cameraInput.click();
 });
 
@@ -101,11 +105,14 @@ copyBtn.addEventListener('click', () => {
 //サウンド切り替えボタン
 soundToggleBtn.addEventListener('click', () => {
     isSoundEnabled = !isSoundEnabled;
-    soundIcon.className = isSoundEnabled ? "w-3.5 h-3.5 text-red-400" : "w-3.5 h-3.5 text-slate-500";
+
+    soundToggleBtn.setAttribute('data-enabled', isSoundEnabled);
     soundLabel.textContent = isSoundEnabled ? "音: ON" : "音: OFF";
 });
 
-// 写真が撮影・選択された時の処理-----------------------------------------------------------
+/*---------------------------------------------------------------------------------
+写真が撮影・選択された時の処理
+---------------------------------------------------------------------------------*/
 cameraInput.addEventListener('change', (e) => handleImageSelected(e));
 photoInput.addEventListener('change', (e) => handleImageSelected(e));
 
@@ -144,7 +151,7 @@ async function handleImageSelected(e) {
         const initialContrast = 1.25; // 1.25倍
 
         for (let i = 0; i < basePixels.length; i += 4) {
-            // グレースケール化を挟みつつ、軽くコントラストを上げる
+            // グレースケール化を挟み、軽くコントラストを上げる
             const gray = 0.299 * basePixels[i] + 0.587 * basePixels[i + 1] + 0.114 * basePixels[i + 2];
             const contrast = Math.max(0, Math.min(255, (gray - 128) * initialContrast + 128));
             basePixels[i] = contrast;
@@ -163,7 +170,9 @@ async function handleImageSelected(e) {
     e.target.value = '';
 };
 
-// キャンバスをスキャン----------------------------------------------------------------
+/*---------------------------------------------------------------------------------
+キャンバスをスキャン
+---------------------------------------------------------------------------------*/
 async function scanCanvas(sourceImage) {
     clearOverlay();
 
@@ -268,6 +277,7 @@ const thresholds = []; // しきい値
     showToast('コードが読み取れませんでした。ピントを合わせて再度撮影してください');
 }
 
+
 //トーストメッセージの表示----------------------------------------------------------------
 function showToast(msg) {
     toastMsg.textContent = msg;
@@ -328,8 +338,10 @@ function playBeep() {
     } catch (e) {}
 }
 
-// スキャン成功時の処理---------------------------------------------------------------
-async function handleSuccess(text, format, successImage) {
+/*---------------------------------------------------------------------------------
+スキャン成功時の処理
+---------------------------------------------------------------------------------*/
+async function handleSuccess(scannedCode, format, successImage) {
     playBeep();
 
     const testImagePreview = document.getElementById('testImagePreview');
@@ -341,7 +353,7 @@ if (successImage && successImage.src && testMode) {
         testImagePlaceholder.classList.add('hidden');
     }
 
-    resultText.textContent = text;
+    resultText.textContent = scannedCode;
     resultText.classList.remove('text-slate-500', 'italic');
     resultText.classList.add('text-slate-100', 'font-mono', 'text-sm', 'font-semibold');
 
@@ -349,15 +361,28 @@ if (successImage && successImage.src && testMode) {
     scanFormat.classList.add('inline-block');
     resultActions.classList.remove('hidden');
 
-    searchGoogleBtn.href = `https://www.google.com/search?q=${encodeURIComponent(text)}`;//あとで別サイト参照に変える
+    searchGoogleBtn.href = `https://www.google.com/search?q=${encodeURIComponent(scannedCode)}`;//あとで別サイト参照に変える
 
     const catalog = await productCatalogPromise;
-    const product = findProduct(catalog, text);
+    const product = findProduct(catalog, scannedCode);
     productName.textContent = product?.name || '当店では取り扱いのない商品です。';
-    productDescription.textContent = product?.description || '-';
+    productDescription.textContent = product?.description || '---';
+    productPrice.textContent = product?.price || '-';
+    productContent.textContent = product?.content || '-';    
+    productStock.textContent = product?.stock || '-';
 
+    if (product && product.image) {
+        mainImagePreview.src = product.image;
+        mainImagePreview.classList.remove('hidden');
+        mainImagePlaceholder.classList.add('hidden');
+        } else {
+        // 商品が見つからない、または画像がないとき
+        mainImagePreview.src = "";
+        mainImagePreview.classList.add('hidden');
+        mainImagePlaceholder.classList.remove('hidden');
+        mainImagePlaceholder.textContent = "該当する商品の画像が見つかりません";
+    }
     showToast("スキャン成功！");
-    
 }
 
 // バーコード形式の表示名を整形-----------------------------------------------------------
