@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase SDK の読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
 </head>
@@ -80,7 +82,7 @@
             <div class="button-container">
                 <button id="selectPhotoBtn" class="btn-photo-select">
                     <i data-lucide="image" class="btn-icon"></i>
-                    <span id="selectPhotoBtnText">写真を選択してスキャン</span>
+                    <span id="selectPhotoBtnText">画像を選択してスキャン</span>
                 </button>
             </div>
             <!--写真撮影ボタン-->
@@ -137,7 +139,7 @@
         <dl class="product-dl">
             <div>
                 <dt class="product-dt">商品名</dt>
-                <dd id="productName" class="product-name">JANコードをスキャンして商品を検索</dd>
+                <dd id="productName" class="product-name">JANコードをスキャンして<br>商品を検索</dd>
             </div>
             <div class="product-info-sub">
                 <div>
@@ -159,6 +161,15 @@
             </div>
         </dl>
     </div>
+<!---------------------------------------------------------------------
+統計情報エリア
+---------------------------------------------------------------------->
+<div class="product-info-container stats-container">
+    <h2 class="product-section-title">スキャン統計</h2>
+    <div id="statsContent" class="stats-content">
+        <p class="stats-placeholder">データを集計中...</p>
+    </div>
+</div>
 
 <!---------------------------------------------------------------------
 テスト用画像出力エリア

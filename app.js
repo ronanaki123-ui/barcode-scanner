@@ -1,5 +1,11 @@
 // バーコードスキャナー
 
+// Supabaseの接続設定
+const SUPABASE_URL = 'https://ejsmoevsnydnzjsvblyg.supabase.co'; //SupabaseプロジェクトURL
+const SUPABASE_KEY = 'sb_publishable_7rRZC1foF3wjZ0FDUiaj1g_JVi8FA4b'; //公開キー
+// クライアントの初期化
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // グローバル変数
 let testMode = true;  //テストモードON/OFF
 let isSoundEnabled = true; //音声ON/OFF
@@ -36,28 +42,36 @@ const scannerGuide = document.getElementById('scannerGuide');
 const overlayCanvas = document.getElementById('overlayCanvas');
 const placeholderView = document.getElementById('placeholderView');
 const canvas = document.getElementById('captureCanvas');
+
 const captureBtn = document.getElementById('captureBtn');
 const captureBtnText = document.getElementById('captureBtnText');
 const selectPhotoBtn = document.getElementById('selectPhotoBtn');
 const shootPhotoBtn = document.getElementById('shootPhotoBtn');
+
 const resultText = document.getElementById('resultText');
 const scanFormat = document.getElementById('scanFormat');
 const resultActions = document.getElementById('resultActions');
 const copyBtn = document.getElementById('copyBtn');
 const searchGoogleBtn = document.getElementById('searchGoogleBtn');
+
 const productName = document.getElementById('productName');
 const productPrice = document.getElementById('productPrice');
 const productContent = document.getElementById('productContent');
 const productStock = document.getElementById('productStock');
 const productDescription = document.getElementById('productDescription');
+
 const soundToggleBtn = document.getElementById('soundToggleBtn');
 const soundIcon = document.getElementById('soundIcon');
 const soundLabel = document.getElementById('soundLabel');
 const toast = document.getElementById('toast');
 const toastMsg = document.getElementById('toastMsg');
+
 const mainImagePreview = document.getElementById('mainImagePreview');
 const mainImagePlaceholder = document.getElementById('mainImagePlaceholder');
+
 const testContaner = document.getElementById('testContainer');
+
+const statsContent = document.getElementById('statsContent');
 
 lucide.createIcons();
 
@@ -342,34 +356,55 @@ function playBeep() {
 スキャン成功時の処理
 ---------------------------------------------------------------------------------*/
 async function handleSuccess(scannedCode, format, successImage) {
+    fetchAndRenderStats();
     playBeep();
 
     const testImagePreview = document.getElementById('testImagePreview');
     const testImagePlaceholder = document.getElementById('testImagePlaceholder');
 
-if (successImage && successImage.src && testMode) {
-        testImagePreview.src = successImage.src;
-        testImagePreview.classList.remove('hidden');
-        testImagePlaceholder.classList.add('hidden');
-    }
+    if (successImage && successImage.src && testMode) {
+            testImagePreview.src = successImage.src;
+            testImagePreview.classList.remove('hidden');
+            testImagePlaceholder.classList.add('hidden');
+        }
 
-    resultText.textContent = scannedCode;
-    resultText.classList.remove('text-slate-500', 'italic');
-    resultText.classList.add('text-slate-100', 'font-mono', 'text-sm', 'font-semibold');
+        resultText.textContent = scannedCode;
+        resultText.classList.remove('text-slate-500', 'italic');
+        resultText.classList.add('text-slate-100', 'font-mono', 'text-sm', 'font-semibold');
 
-    scanFormat.textContent = format;
-    scanFormat.classList.add('inline-block');
-    resultActions.classList.remove('hidden');
+        scanFormat.textContent = format;
+        scanFormat.classList.add('inline-block');
+        resultActions.classList.remove('hidden');
 
-    searchGoogleBtn.href = `https://www.google.com/search?q=${encodeURIComponent(scannedCode)}`;//あとで別サイト参照に変える
+        searchGoogleBtn.href = `https://www.google.com/search?q=${encodeURIComponent(scannedCode)}`;//あとで別サイト参照に変える
 
-    const catalog = await productCatalogPromise;
-    const product = findProduct(catalog, scannedCode);
-    productName.textContent = product?.name || '当店では取り扱いのない商品です。';
-    productDescription.textContent = product?.description || '---';
-    productPrice.textContent = product?.price || '-';
-    productContent.textContent = product?.content || '-';    
-    productStock.textContent = product?.stock || '-';
+        const catalog = await productCatalogPromise;
+        const product = findProduct(catalog, scannedCode);
+
+        productName.textContent = product?.name || '当店では取り扱いのない商品です。';
+        productDescription.textContent = product?.description || '---';
+        productPrice.textContent = product?.price || '-';
+        productContent.textContent = product?.content || '-';    
+        productStock.textContent = product?.stock || '-';
+
+    try { //supabaseにスキャン情報を送る
+            const { error } = await supabaseClient
+                .from('scans')
+                .insert([
+                    { 
+                        product_code: scannedCode, 
+                        product_name: productName.textContent
+                    }
+                ]);
+
+            if (error) {
+                console.error('Supabase保存エラー:', error);
+            } else {
+                console.log('スキャンデータをSupabaseに保存しました！');
+            }
+        } catch (err) {
+            console.error('通信エラー:', err);
+        }
 
     if (product && product.image) {
         mainImagePreview.src = product.image;
@@ -416,6 +451,80 @@ function escapeHtml(str) {
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました'));
 }
+
+/*---------------------------------------------------------------------------------
+統計データの取得
+---------------------------------------------------------------------------------*/
+// 統計データを取得して画面に反映
+async function fetchAndRenderStats() {
+    if (!statsContent) return;
+
+    //scans テーブルからすべてのデータを取得
+    const { data: scans, error } = await supabaseClient
+        .from('scans')
+        .select('*');
+
+    if (error) {
+        console.error('統計データの取得エラー:', error);
+        statsContent.innerHTML = '<p class="text-red-400">統計データの読み込みに失敗しました</p>';
+        return;
+    }
+
+    if (!scans || scans.length === 0) {
+        statsContent.innerHTML = '<p class="italic text-slate-400">まだスキャン履歴がありません</p>';
+        return;
+    }
+
+    //商品コードごとにスキャン回数を集計する
+    const statsMap = {};
+    scans.forEach(scan => {
+        const code = scan.product_code;
+        const name = scan.product_name || '不明な商品';
+        
+        if (!statsMap[code]) {
+            statsMap[code] = { name: name, count: 0 };
+        }
+        statsMap[code].count += 1;
+    });
+
+    //集計結果を回数が多い順にソート
+    const sortedStats = Object.entries(statsMap).sort((a, b) => b[1].count - a[1].count);
+
+    //HTMLに反映して描画
+    let html = '<ul class="divide-y divide-slate-700">';
+    for (const [code, info] of sortedStats) {
+        html += `
+            <li class="py-1.5 flex justify-between items-center">
+                <span class="font-medium text-slate-200 truncate max-w-[70%]">${escapeHtml(info.name)} <span class="text-[10px] text-slate-400 font-mono">(${code})</span></span>
+                <span class="bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded font-bold text-xs">${info.count} 回</span>
+            </li>
+        `;
+    }
+    html += '</ul>';
+    statsContent.innerHTML = html;
+}
+
+// ページ読み込み時に一度統計を取得・表示する
+document.addEventListener('DOMContentLoaded', () => {
+    fetchAndRenderStats();
+});
+
+// //Supabase Realtime を使って、データが追加時に再集計・更新
+// supabaseClient
+//     .channel('realtime-scans-stats')
+//     .on(
+//     'postgres_changes',
+//     { event: 'INSERT', schema: 'public', table: 'scans' },
+//     (payload) => {
+//         console.log('新しいスキャンを検知しました！統計を更新します:', payload.new);
+//       fetchAndRenderStats(); //自動で再集計
+//     }
+//     )
+//     .subscribe();
+
+
+
+
 
 //    9 _____ 9
 //   /         \

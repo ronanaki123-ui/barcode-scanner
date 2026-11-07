@@ -483,7 +483,7 @@ button:disabled,
 
 /* 商品名(dd) */
 .product-name {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: white;
     word-break: break-word;
@@ -587,8 +587,26 @@ button:disabled,
 統計情報エリア
 -----------------------------------------------------*/
 
+.stats-container {
+    margin-top: 0.75rem;
+}
 
+.stats-content {
+    font-size: 0.75rem;
+    color: var(--sub-text-color);
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 160px;
+    overflow-y: auto;/* 縦方向にはみ出た場合にスクロールを表示 */
+    padding-right: 0.25rem;
+}
 
+.stats-placeholder {
+    font-style: italic;
+    color: var(--sub-text-color);
+}
 
 
 /*-----------------------------------------------------
