@@ -5,6 +5,7 @@
 -----------------------------------------------------*/
 :root {
     --bg-color: #fff8e0;
+    --bg-color-2: #ffe4be;
     --main-color: #ff7c24;
     --main-darker-color: #e35914;
     --main-color-2: #ffb23e;
@@ -24,7 +25,7 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(to top, var(--main-color), var(--main-color-2), var(--bg-color));
+    background: linear-gradient(to top, var(--bg-color-2), var(--bg-color), white);
 }
 ::-webkit-scrollbar {
     width: 8px;
@@ -317,23 +318,23 @@ button:disabled,
 スキャン結果エリア
 -----------------------------------------------------*/
 /* スキャン結果コンテナ */
-.result-container {
+/* .result-container {
     background-color: var(--result-bg-color);
     border: 1px solid var(--result-border-color);
     border-radius: 0.75rem;
     padding: 0.75rem;
     box-shadow: 0 10px 15px -10px black;
     margin-bottom: 0.75rem;
-}
+} */
 
 /* スキャンフォーマット表示*/
-.result-format {
+/* .result-format {
     color: var(--main-color);
     font-family: monospace;
-}
+} */
 
 /* 結果コンテンツボックス */
-.result-content-box {
+/* .result-content-box {
     background-color: var(--dark-color);
     border: 1px solid var(--main-color);
     border-radius: 0.5rem;
@@ -342,7 +343,7 @@ button:disabled,
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
+} */
 
 /*結果テキスト(未読時のプレースホルダー含む)*/
 .result-text {

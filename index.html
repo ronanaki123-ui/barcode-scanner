@@ -45,6 +45,7 @@
     <!-- 撮影した画像のプレビューとキャンバス -->
     <div class="preview-content-wrapper">
         <img id="imagePreview" class="preview-image hidden" alt="撮影プレビュー">
+        <video id="videoPreview" autoplay muted playsinline class="w-full h-full object-cover hidden"></video>
         <canvas id="overlayCanvas" class="preview-overlay hidden"></canvas>
     </div>
 
@@ -98,7 +99,7 @@
 <!---------------------------------------------------------------------
 スキャン結果エリア
 ---------------------------------------------------------------------->
-    <div class="result-container">
+    <!-- <div class="result-container">
         <div class="result-header">
             <span>スキャン結果</span>
             <span id="scanFormat" class="result-format hidden">--</span>
@@ -107,10 +108,10 @@
         <div id="resultContent" class="result-content-box">
             <p id="resultText" class="result-text">
                 スキャンしたJANコードがこちらに表示されます
-            </p>
-            
+            </p> -->
+
             <!-- 結果アクションボタン-->
-            <div id="resultActions" class="result-actions hidden">
+            <!-- <div id="resultActions" class="result-actions hidden">
                 <button id="copyBtn" title="コピー" class="action-btn">
                     <i data-lucide="copy" class="action-icon"></i>
                 </button>
@@ -119,7 +120,7 @@
                 </a>
             </div>
         </div>
-    </div>
+    </div> -->
 
 <!---------------------------------------------------------------------
 商品画像表示エリア
@@ -143,7 +144,7 @@
             </div>
             <div class="product-info-sub">
                 <div>
-                    <dt class="product-sub-dt">値段</dt>
+                    <dt class="product-sub-dt">価格</dt>
                     <dd id="productPrice" class="product-price"> - </dd>
                 </div>
                 <div>
@@ -161,6 +162,7 @@
             </div>
         </dl>
     </div>
+
 <!---------------------------------------------------------------------
 統計情報エリア
 ---------------------------------------------------------------------->
@@ -194,7 +196,10 @@
     <!-- ライブラリ読み込み -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script> -->
     <script src="https://unpkg.com/@zxing/library@0.21.3"></script>
+    <script src="api.js"></script>
+    <script src="catalog.js"></script>
+    <script src="scanner.js"></script>
     <script src="app.js"></script>
-    
+
 </body>
 </html>
