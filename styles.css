@@ -201,10 +201,25 @@ button[data-enabled="false"] .sound-icon.icon-off {
     height: 2rem;
 }
 
-/* プレースホルダーのテキスト */
+/*プレースホルダーのテキスト*/
 .placeholder-text {
     font-size: 0.75rem;
     color: var(--sub-text-color);
+}
+
+/*ライブスキャンガイド*/
+.scanner-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;  /*JS側の切り抜き幅に合わせる*/
+    height: 40%; /*JS側の切り抜き高さに合わせる*/
+    border: 2px solid #44e4ef;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4); /*枠の外側を暗く*/
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 10;
 }
 
 /*-----------------------------------------------------

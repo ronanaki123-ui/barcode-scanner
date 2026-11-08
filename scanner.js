@@ -21,7 +21,11 @@ const zxingReader = new ZXing.BrowserMultiFormatReader(scanHints);
 async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' } // 外カメラを優先
+            video: {  
+                facingMode: 'environment',
+                width: { ideal: 1920 },  //横幅の理想値
+                height: { ideal: 1080 } // 縦幅の理想値
+            } // 外カメラを優先
         });
         videoElement.srcObject = stream;
         videoElement.play();
@@ -218,10 +222,25 @@ async function startLiveScanLoop() {
     const captureCanvas = document.getElementById('captureCanvas');
 
     if (videoPreview && videoPreview.readyState === videoPreview.HAVE_ENOUGH_DATA) {
-        captureCanvas.width = videoPreview.videoWidth;
-        captureCanvas.height = videoPreview.videoHeight;
+        const vW = videoPreview.videoWidth;
+        const vH = videoPreview.videoHeight;
+
+        //カメラ映像から切り抜く
+        const cropW = vW * 0.7; //幅70%
+        const cropH = vH * 0.4; //高さ40%
+        const cropX = (vW - cropW) / 2;
+        const cropY = (vH - cropH) / 2;
+
+        captureCanvas.width = cropW;
+        captureCanvas.height = cropH;
         const ctx = captureCanvas.getContext('2d', { willReadFrequently: true });
-        ctx.drawImage(videoPreview, 0, 0, captureCanvas.width, captureCanvas.height);
+
+        //中央部分だけをキャプチャする
+        ctx.drawImage(
+            videoPreview, 
+            cropX, cropY, cropW, cropH,
+            0, 0, cropW, cropH
+        );
 
         if (!isCoolingDown) {
             if (typeof clearOverlay === 'function') clearOverlay();

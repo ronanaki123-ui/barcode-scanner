@@ -96,6 +96,10 @@ captureBtn.addEventListener('click', async () => {
             imagePreview.classList.add('hidden');
             placeholderView.classList.add('hidden');
 
+            if (scannerGuide) {
+                scannerGuide.classList.remove('hidden');
+            }
+
             isLiveScanning = true;
             startLiveScanLoop();
 
@@ -135,6 +139,9 @@ function stopLiveScan() {
     videoPreview.srcObject = null;
     videoPreview.classList.add('hidden');
     placeholderView.classList.remove('hidden');
+    if (scannerGuide) {
+        scannerGuide.classList.add('hidden');
+    }
 
     captureBtnText.textContent = "ライブビューでバーコードをスキャン";
     captureBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
@@ -242,11 +249,26 @@ async function handleSuccess(scannedCode, format, successImage) {
 
         const product = findProduct(PRODUCTS_CATALOG, scannedCode);
 
-        productName.textContent = product?.name || '当店では取り扱いのない商品です。';
-        productDescription.textContent = product?.description || '---';
-        productPrice.textContent = product?.price || '-';
-        productContent.textContent = product?.content || '-';    
-        productStock.textContent = product?.stock || '-';
+if (!product) {
+        productName.textContent = '当店では取り扱いのない商品です。';
+        productDescription.textContent = '---';
+        productPrice.textContent = '-';
+        productContent.textContent = '-';    
+        productStock.textContent = '-';
+
+        mainImagePreview.src = "";
+        mainImagePreview.classList.add('hidden');
+        mainImagePlaceholder.classList.remove('hidden');
+        mainImagePlaceholder.textContent = "該当する商品の画像が見つかりません";
+
+        showToast("取り扱いのない商品です");
+        return; //DBに保存せず終了
+    }
+    productName.textContent = product.name;
+    productDescription.textContent = product.description || '---';
+    productPrice.textContent = product.price || '-';
+    productContent.textContent = product.content || '-';    
+    productStock.textContent = product.stock || '-';
 
     await saveScanData(scannedCode, productName.textContent);
 
