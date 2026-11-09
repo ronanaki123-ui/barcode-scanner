@@ -170,7 +170,6 @@ async function tryHeavyScan(canvasElement) {
                 pixels[i + 1] = binary;
                 pixels[i + 2] = binary;
             }
-            
             enhancedContext.putImageData(imageData, 0, 0);
 
             const enhancedImage = new Image();
@@ -241,6 +240,20 @@ async function startLiveScanLoop() {
             cropX, cropY, cropW, cropH,
             0, 0, cropW, cropH
         );
+        
+        //コントラストをアゲアゲ
+        const liveImageData = ctx.getImageData(0, 0, captureCanvas.width, captureCanvas.height);
+        const livePixels = liveImageData.data;
+        const liveContrast = 1.6;
+
+        for (let i = 0; i < livePixels.length; i += 4) {
+            const gray = 0.299 * livePixels[i] + 0.587 * livePixels[i + 1] + 0.114 * livePixels[i + 2];
+            const contrast = Math.max(0, Math.min(255, (gray - 128) * liveContrast + 128));
+            livePixels[i] = contrast;
+            livePixels[i + 1] = contrast;
+            livePixels[i + 2] = contrast;
+        }
+        ctx.putImageData(liveImageData, 0, 0);
 
         if (!isCoolingDown) {
             if (typeof clearOverlay === 'function') clearOverlay();

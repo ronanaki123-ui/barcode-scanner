@@ -86,7 +86,11 @@ captureBtn.addEventListener('click', async () => {
     if (!isLiveScanning) {
         try {
             cameraStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' }
+                video: { 
+                    facingMode: 'environment' ,
+                    width: { ideal: 1920 },  // 横幅の理想値
+                    height: { ideal: 1080 }  // 縦幅の理想値
+                }
             });
 
             videoPreview.srcObject = cameraStream;
