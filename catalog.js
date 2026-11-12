@@ -73,7 +73,7 @@ const PRODUCTS_CATALOG = {
     "description": "-",
     "price": "560 円(税込)",
     "stock": "30",
-    "content": "天眼薬 99 ml",
+    "content": "天眼薬 10 ml 2本",
     "image": "images/product_pic/009.jpg"
   },
   "201040109901": { //------------------------ペルソスイッチ-------------------

@@ -177,6 +177,49 @@ soundToggleBtn.addEventListener('click', () => {
     soundLabel.textContent = isSoundEnabled ? "音: ON" : "音: OFF";
 });
 
+
+/*---------------------------------------------------------------------------------
+物理バーコードスキャナーのサポート
+---------------------------------------------------------------------------------*/
+let barcodeBuffer = '';
+let lastKeyTime = Date.now();
+
+function toHalfWidth(str) {
+    return str.replace(/[A - Z a - z 0 - 9]/g,(s) => {
+        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    // ※もし将来的にテキスト入力欄などを置いた場合、そこでのタイピング誤爆を防ぎたい場合は
+    //   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    //   を入れても良いですが、現在のアプリには入力欄がないためそのままでOKです。
+
+    const currentTime = Date.now();
+    
+    // 前回のキー入力から100ミリ秒以上空いた場合、バッファをリセット
+    if (currentTime - lastKeyTime > 100) {
+        barcodeBuffer = '';
+    }
+    lastKeyTime = currentTime;
+
+    if (e.key === 'Enter') {
+        // Enterキーが検知された場合
+        if (barcodeBuffer.length > 0) {
+            let scannedCode = barcodeBuffer.trim();
+            scannedCode = toHalfWidth(scannedCode);
+            console.log('物理スキャナーからコードを受信:', scannedCode);
+            handleSuccess(scannedCode, 'Physical Scanner', null);
+        }
+        barcodeBuffer = '';
+        e.preventDefault(); // ページの意図しない挙動を防止
+    } else if (e.key.length === 1) {
+        // 通常の文字キーであれば、バーコードの文字列としてバッファに溜める
+        barcodeBuffer += e.key;
+    }
+});
+
+
 //トーストメッセージの表示----------------------------------------------------------------
 function showToast(msg) {
     toastMsg.textContent = msg;
@@ -226,7 +269,7 @@ async function handleSuccess(scannedCode, format, successImage) {
         imageSrc = successImage.toDataURL('image/png');
     } 
     //通常のImage要素の場合
-    else if (successImage.src) {
+    else if (successImage && successImage.src) {
         imageSrc = successImage.src;
     }
     if(imageSrc) {
