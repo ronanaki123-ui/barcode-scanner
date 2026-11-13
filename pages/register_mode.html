@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ソシアル製薬レジ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden antialiased p-3 sm:p-5 max-w-7xl mx-auto">
+</body>
+    <link rel="stylesheet" href="register_mode_style.css">
+</head>
+
+<!---------------------------------------------------------------------
+ヘッダー 
+---------------------------------------------------------------------->
+    <header class="app-header">
+        <div class="header-title-group">
+            <div class="icon-box">
+                <i data-lucide="camera" class="camera-icon"></i>
+            </div>
+            <h1 class="title">
+                ソシアル製薬レジ
+            </h1>
+        </div>
+        <!-- サウンド切り替え -->
+        <button id="soundToggleBtn" class="sound-toggle-btn" data-enabled="true">
+            <!--ON用-->
+            <i data-lucide="volume-2" class="sound-icon icon-on"></i>
+            <!--OFF用-->
+            <i data-lucide="volumeOff" class="sound-icon icon-off"></i>
+            <span id="soundLabel">音: ON</span>
+    </header>
+
+<div>
+    <a href="index.html" class="link-btn">バーコードスキャナーモード</a>
+</div>
+
+
+<script>
+        lucide.createIcons();
+</script>

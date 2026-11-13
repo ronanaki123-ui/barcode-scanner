@@ -185,7 +185,7 @@ let barcodeBuffer = '';
 let lastKeyTime = Date.now();
 
 function toHalfWidth(str) {
-    return str.replace(/[A - Z a - z 0 - 9]/g,(s) => {
+    return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g,(s) => {
         return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
     });
 }

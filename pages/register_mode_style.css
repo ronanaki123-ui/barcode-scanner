@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/*-----------------------------------------------------
+カラー変数の定義
+-----------------------------------------------------*/
+:root {
+    --bg-color: #fff8e0;
+    --bg-color-2: #ffe4be;
+    --main-color: #ff7c24;
+    --main-darker-color: #e35914;
+    --main-color-2: #ffb23e;
+    --main-darker-color-2: #dfa016;
+    --accent-color: #33e7c3;
+    --accent-darker-color: #22c6c3;
+    --dark-color: #3b241e;
+    --sub-text-color: #d1d5db;
+    --result-bg-color: #5c554d;
+    --result-border-color: #76716c;
+    --transparent-bg-color: rgba(110, 105, 100, 0.7);
+}
+
+
+
+.title {
+    color: var(--dark-color);
+}
+
+/*サウンドボタン*/
+.sound-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem; 
+    font-size: 0.75rem; 
+    background-color: var(--dark-color); 
+    color: white;
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--main-color);
+    transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+.sound-toggle-btn:hover {
+    background-color: var(--dark-color); 
+}
+/*スピーカーアイコン*/
+.sound-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+}
+/*ON*/
+button[data-enabled="true"] .icon-off {
+    display: none; /* OFF用アイコンを消す */
+}
+button[data-enabled="true"] .sound-icon.icon-on {
+    color: var(--accent-color);
+}
+/*OFF*/
+button[data-enabled="false"] .icon-on {
+    display: none; /* ON用アイコンを消す */
+}
+button[data-enabled="false"] .sound-icon.icon-off {
+    color: var(--result-border-color);
+}
+
+.link-btn {
+    color: var(--accent-color);
+}
