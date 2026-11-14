@@ -23,7 +23,7 @@ const PRODUCTS_CATALOG = {
   "201010039902": { //---------------------T-T-リリーフ------------------------
     "name": "T-T-リリーフ",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "1399 円(税込)",
     "stock": "30",
     "content": "液体 99 ml",
     "image": "images/product_pic/003.jpg"
@@ -31,7 +31,7 @@ const PRODUCTS_CATALOG = {
   "201030043001": { //---------------------アタマハレイド-----------------------
     "name": "アタマハレイド",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "1529 円(税込)",
     "stock": "30",
     "content": "錠剤 24 錠",
     "image": "images/product_pic/004.jpg"
@@ -39,7 +39,7 @@ const PRODUCTS_CATALOG = {
   "201030059902": { //---------------------エクセトリリーブ---------------------
     "name": "エクセトリリーブ",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "749 円(税込)",
     "stock": "30",
     "content": "貼り薬 99 枚",
     "image": "images/product_pic/005.jpg"
@@ -47,7 +47,7 @@ const PRODUCTS_CATALOG = {
   "201030069901": { //----------------------ワードパット-----------------------
     "name": "ワードパット",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "829 円(税込)",
     "stock": "30",
     "content": "貼り薬 99 枚",
     "image": "images/product_pic/006.jpg"
@@ -55,7 +55,7 @@ const PRODUCTS_CATALOG = {
   "201030071511": { //---------------------セルフィスティーム---------------------
     "name": "セルフィスティーム",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "748 円(税込)",
     "stock": "30",
     "content": "粉薬 5 包",
     "image": "images/product_pic/007.jpg"
@@ -63,7 +63,7 @@ const PRODUCTS_CATALOG = {
   "201020089911": { //----------------------メジルス塩酸塩-C-----------------------
     "name": "メジルス塩酸塩-C",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "239 円(税込)",
     "stock": "30",
     "content": "天眼薬 99 ml",
     "image": "images/product_pic/008.jpg"
@@ -71,7 +71,7 @@ const PRODUCTS_CATALOG = {
   "201030099901": { //------------------------マルチルック---------------------
     "name": "マルチルック",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "339 円(税込)",
     "stock": "30",
     "content": "天眼薬 10 ml 2本",
     "image": "images/product_pic/009.jpg"
@@ -79,7 +79,7 @@ const PRODUCTS_CATALOG = {
   "201040109901": { //------------------------ペルソスイッチ-------------------
     "name": "ペルソスイッチ",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "748 円(税込)",
     "stock": "30",
     "content": "軟膏 99",
     "image": "images/product_pic/010.jpg"
@@ -87,7 +87,7 @@ const PRODUCTS_CATALOG = {
   "201030111211": { //-------------------------アビリオフ--------------------
     "name": "アビリオフ",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "548 円(税込)",
     "stock": "30",
     "content": "錠剤 12 錠",
     "image": "images/product_pic/011.jpg"
@@ -95,7 +95,7 @@ const PRODUCTS_CATALOG = {
   "201030123003": { //-------------------------クシミステス-50--------------------
     "name": "クシミステス-50",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "1548 円(税込)",
     "stock": "30",
     "content": "錠剤 30 錠",
     "image": "images/product_pic/012.jpg"
@@ -103,7 +103,7 @@ const PRODUCTS_CATALOG = {
   "201030133011": { //-------------------------クロノパンテ--------------------
     "name": "クロノパンテ",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "1639 円(税込)",
     "stock": "30",
     "content": "錠剤 30 錠",
     "image": "images/product_pic/013.jpg"
@@ -111,7 +111,7 @@ const PRODUCTS_CATALOG = {
   "201040146011": { //-------------------------グロッサン--------------------
     "name": "グロッサン",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "2398 円(税込)",
     "stock": "30",
     "content": "錠剤 60 錠",
     "image": "images/product_pic/014.jpg"
@@ -119,7 +119,7 @@ const PRODUCTS_CATALOG = {
   "201030151501": { //------------------------サインターン散-------------------
     "name": "サインターン散",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "500 円(税込)",
     "stock": "30",
     "content": "粉薬 5 包",
     "image": "images/product_pic/015.jpg"
@@ -127,7 +127,7 @@ const PRODUCTS_CATALOG = {
   "201010163001": { //------------------------ルミナイン---------------------
     "name": "ルミナイン",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "1278 円(税込)",
     "stock": "30",
     "content": "錠剤 30 錠",
     "image": "images/product_pic/016.jpg"
@@ -135,7 +135,7 @@ const PRODUCTS_CATALOG = {
   "201040170511": { //-------------------------エピタグ--------------------
     "name": "エピタグ",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "554 円(税込)",
     "stock": "30",
     "content": "錠剤 5回分",
     "image": "images/product_pic/017.jpg"
@@ -143,7 +143,7 @@ const PRODUCTS_CATALOG = {
   "201050181211": { //-----------------------インビトール--------------------
     "name": "インビトール",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "498 円(税込)",
     "stock": "30",
     "content": "錠剤 12 錠",
     "image": "images/product_pic/018.jpg"
@@ -151,7 +151,7 @@ const PRODUCTS_CATALOG = {
   "201050199902": { //-------------------------ソロゾーン------------------
     "name": "ソロゾーン",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "458 円(税込)",
     "stock": "30",
     "content": "点眼薬 99 ml",
     "image": "images/product_pic/019.jpg"
@@ -159,7 +159,7 @@ const PRODUCTS_CATALOG = {
   "201030202411": { //-------------------------プレナビゲン------------------
     "name": "プレナビゲン",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "1379 円(税込)",
     "stock": "30",
     "content": "錠剤 24 錠",
     "image": "images/product_pic/020.jpg"
@@ -167,7 +167,7 @@ const PRODUCTS_CATALOG = {
   "201040219911": { //-------------------------ネガクリアー-----------------
     "name": "ネガクリアー",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "229 円(税込)",
     "stock": "30",
     "content": "点眼薬 99 ml",
     "image": "images/product_pic/021.jpg"
@@ -175,7 +175,7 @@ const PRODUCTS_CATALOG = {
   "201010226011": { //-------------------------アファブリル-----------------
     "name": "アファブリル",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "2390 円(税込)",
     "stock": "30",
     "content": "錠剤 60 錠",
     "image": "images/product_pic/022.jpg"
@@ -183,7 +183,7 @@ const PRODUCTS_CATALOG = {
   "201020232411": { //------------------------インターデタッチ----------------
     "name": "インターデタッチ",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "889 円(税込)",
     "stock": "30",
     "content": "錠剤 24 錠",
     "image": "images/product_pic/023.jpg"
@@ -191,7 +191,7 @@ const PRODUCTS_CATALOG = {
   "201020242411": { //------------------------ワーカーイン----------------
     "name": "ワーカーイン",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "889 円(税込)",
     "stock": "30",
     "content": "錠剤 24 錠",
     "image": "images/product_pic/024.jpg"
@@ -199,7 +199,7 @@ const PRODUCTS_CATALOG = {
   "201020252411": { //-----------------------サイレンジョイ-----------------
     "name": "サイレンジョイ",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "967 円(税込)",
     "stock": "30",
     "content": "錠剤 24 錠",
     "image": "images/product_pic/025.jpg"
@@ -207,7 +207,7 @@ const PRODUCTS_CATALOG = {
   "0": { //-----------------------------------フィラーレス------------
     "name": "フィラーレス",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "1080 円(税込)",
     "stock": "30",
     "content": "錠剤 24 錠",
     "image": "images/product_pic/026.jpg"
@@ -215,7 +215,7 @@ const PRODUCTS_CATALOG = {
   "00": { //------------------------------コンストリレー-C プレミアム-------------
     "name": "コンストリレー-C プレミアム",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "1224 円(税込)",
     "stock": "30",
     "content": "錠剤 24 錠",
     "image": "images/product_pic/027.jpg"
@@ -223,7 +223,7 @@ const PRODUCTS_CATALOG = {
   "000": { //----------------------------コンストリレー-C レギュラー-----------------
     "name": "コンストリレー-C レギュラー",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "987 円(税込)",
     "stock": "30",
     "content": "錠剤 24 錠",
     "image": "images/product_pic/028.jpg"
@@ -231,7 +231,7 @@ const PRODUCTS_CATALOG = {
   "0000": { //-----------------------------デタッチガード----------------
     "name": "デタッチガード",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "547 円(税込)",
     "stock": "30",
     "content": "貼り薬 99 枚",
     "image": "images/product_pic/029.jpg"
@@ -239,7 +239,7 @@ const PRODUCTS_CATALOG = {
   "00000": { //-----------------------------テンポリセット----------------
     "name": "テンポリセット",
     "description": "-",
-    "price": "560 円(税込)",
+    "price": "782 円(税込)",
     "stock": "30",
     "content": "液体 99 ml",
     "image": "images/product_pic/030.jpg"
